@@ -1,0 +1,276 @@
+\input texinfo @c -*-texinfo-*-
+@setfilename gslsp.info
+@settitle Sparse Matrix Extensions to the GNU Scientific Library
+@finalout
+@c %**end of header
+
+@dircategory Scientific software
+@direntry
+* gslsp: (gslsp).                   Sparse matrix extensions to GSL
+@end direntry
+
+@c How to use the math macros
+@c ==========================
+@c 
+@c For simple expressions, simply use the @math{} command, e.g.
+@c
+@c     @math{\exp(x)/(1+x^2)}
+@c 
+@c but if the expression includes characters that need to be 'escaped'
+@c in texinfo, like '{' or '}', or needs different output for TeX and info,
+@c then use the following form,
+@c
+@c     blah blah blah @c{$y^{1+b} \le \pi$}
+@c     @math{y^@{1+b@} <= \pi}
+@c
+@c The first part using @c{} must appear at the end of a line (it reads
+@c up to the line end -- as far as texinfo is concerned it's actually
+@c a 'comment').  The comment command @c has been modified to capture
+@c a TeX expression which is output by the next @math.
+@c
+@c For ordinary comments use the @comment command.
+
+@tex
+% Mathematical macros taken from the GNU Calc Manual
+% ==================================================
+%
+% Some special kludges to make TeX formatting prettier.
+% Because makeinfo.c exists, we can't just define new commands.
+% So instead, we take over little-used existing commands.
+%
+% Redefine @cite{text} to act like $text$ in regular TeX.
+% Info will typeset this same as @samp{text}.
+\gdef\goodtex{\tex \let\rm\goodrm \let\t\ttfont \turnoffactive}
+\gdef\goodrm{\fam0\tenrm}
+\gdef\math{\goodtex$\mathxxx}
+\gdef\mathxxx#1{#1$\endgroup}
+\global\let\oldxrefX=\xrefX
+\gdef\xrefX[#1]{\begingroup\let\math=\dfn\oldxrefX[#1]\endgroup}
+%
+% Redefine @i{text} to be equivalent to @cite{text}, i.e., to use math mode.
+% This looks the same in TeX but omits the surrounding ` ' in Info.
+%\global\let\i=\cite
+%\global\let\math=\cite
+%
+% Redefine @c{tex-stuff} \n @whatever{info-stuff}.
+\gdef\c{\futurelet\next\mycxxx}
+\gdef\mycxxx{%
+  \ifx\next\bgroup \goodtex\let\next\mycxxy
+  \else\ifx\next\mindex \let\next\relax
+  \else\ifx\next\kindex \let\next\relax
+  \else\ifx\next\starindex \let\next\relax \else \let\next\comment
+  \fi\fi\fi\fi \next
+}
+\gdef\mycxxy#1#2{#1\endgroup\mycxxz}
+\gdef\mycxxz#1{}
+%
+% Define \Hat to take over from \hat as an accent
+\gdef\Hat{\mathaccent "705E}
+%
+%\gdef\beforedisplay{\vskip-10pt}
+%\gdef\afterdisplay{\vskip-5pt}
+\gdef\beforedisplay{}
+\gdef\afterdisplay{}
+{\globaldefs = 1
+\abovedisplayskip=7pt plus 2pt minus 1pt
+\belowdisplayskip=7pt plus 2pt minus 1pt
+\abovedisplayshortskip=7pt plus 2pt minus 1pt
+\belowdisplayshortskip=7pt plus 2pt minus 1pt}
+%\abovedisplayskip=12pt plus 3pt minus 3pt
+%\belowdisplayskip=12pt plus 3pt minus 3pt
+%\abovedisplayshortskip=7pt plus 1pt minus 1pt
+%\belowdisplayshortskip=7pt plus 1pt minus 1pt
+%\gdef\beforedisplayh{\vskip-25pt}
+%\gdef\afterdisplayh{\vskip-10pt}
+%
+\gdef\arcsec{\hbox{\rm arcsec}}
+\gdef\arccsc{\hbox{\rm arccsc}}
+\gdef\arccot{\hbox{\rm arccot}}
+\gdef\sech{\hbox{\rm sech}}
+\gdef\csch{\hbox{\rm csch}}
+\gdef\coth{\hbox{\rm coth}}
+\gdef\arcsinh{\hbox{\rm arcsinh}}
+\gdef\arccosh{\hbox{\rm arccosh}}
+\gdef\arctanh{\hbox{\rm arctanh}}
+\gdef\arcsech{\hbox{\rm arcsech}}
+\gdef\arccsch{\hbox{\rm arccsch}}
+\gdef\arccoth{\hbox{\rm arccoth}}
+%
+\gdef\Re{\hbox{\rm Re}}
+\gdef\Im{\hbox{\rm Im}}
+\gdef\Sin{\hbox{\rm Sin}}
+\gdef\Cos{\hbox{\rm Cos}}
+\gdef\Log{\hbox{\rm Log}}
+%
+\gdef\erf{\hbox{\rm erf}}
+\gdef\erfc{\hbox{\rm erfc}}
+\gdef\sinc{\hbox{\rm sinc}}
+\gdef\sgn{\hbox{\rm sgn}}
+\gdef\sign{\hbox{\rm sign}}
+\gdef\det{\hbox{\rm det}}
+\gdef\Var{\hbox{\rm Var}}
+\gdef\arg{\hbox{\rm arg}} % avoid temporary clobbering of arg in texinfo-4.8
+@end tex
+
+@include version-ref.texi
+
+@copying
+Copyright @copyright{} 2012 Patrick Alken.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``GNU General Public License'' and ``Free Software
+Needs Free Documentation'', the Front-Cover text being ``A GNU Manual'',
+and with the Back-Cover Text being (a) (see below).  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License''.
+@end copying
+
+@titlepage
+@title GSLSP
+@subtitle Extensions to the GNU Scientific Library
+@subtitle Version @value{VERSION}
+@subtitle @value{UPDATED}
+
+@author Patrick Alken
+@comment @email{alken@colorado.edu}
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top, Introduction, (dir), (dir)
+@top MAGFIELD
+
+This file documents GSLSP, a collection of routines for
+constructing and manipulating sparse matrices.
+
+Information about GSL can be found at the project homepage,
+@uref{http://www.gnu.org/software/gsl/}.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License.
+@end ifnottex
+
+@menu
+* Introduction::                
+* Functions::                   
+* Examples::                    
+* References and Further Reading::  
+* GNU Free Documentation License::  
+* Function Index::              
+* Variable Index::              
+* Type Index::                  
+* Concept Index::               
+@end menu
+
+@node  Introduction, Functions, Top, Top
+@chapter Introduction
+
+These routines provide support for constructing and manipulating
+sparse matrices in GSL.
+
+The routines in this extension are defined in the header file
+@file{gsl_spmatrix.h}.
+
+@node Functions, Examples, Introduction, Top
+@chapter Functions
+
+@deftypefun {gsl_spmatrix *} gsl_spmatrix_alloc (const size_t @var{n1}, const size_t @var{n2})
+This function allocates a sparse matrix of size @var{n1}-by-@var{n2}.
+If the size of the matrix is not known at allocation time, both
+@var{n1} and @var{n2} may be set to 1, and they will automatically
+grow as elements are added to the matrix. This function sets the
+matrix to the triplet representation, which is the easiest for adding
+and accessing matrix elements.
+@end deftypefun
+
+@deftypefun void gsl_spmatrix_free (gsl_spmatrix * @var{m})
+This function frees the memory associated with the sparse matrix @var{m}.
+@end deftypefun
+
+@deftypefun size_t gsl_spmatrix_nnz (const gsl_spmatrix * @var{m})
+This function returns the number of non-zero elements in @var{m}.
+@end deftypefun
+
+@deftypefun double gsl_spmatrix_get (const gsl_spmatrix * @var{m}, const size_t @var{i}, const size_t @var{j})
+This function returns element (@var{i},@var{j}) of the matrix @var{m}.
+The matrix must be in triplet representation.
+@end deftypefun
+
+@deftypefun int gsl_spmatrix_set (gsl_spmatrix * @var{m}, const size_t @var{i}, const size_t @var{j}, const double @var{x})
+This function sets element (@var{i},@var{j}) of the matrix @var{m} to
+the value @var{x}. The matrix must be in triplet representation.
+@end deftypefun
+
+@deftypefun int gsl_spmatrix_scale (gsl_spmatrix * @var{m}, const double @var{x})
+This function scales all elements of the matrix @var{m} by the constant
+factor @var{x}.
+@end deftypefun
+
+@deftypefun int gsl_spmatrix_minmax (const gsl_spmatrix * @var{m}, double * @var{min_out}, double * @var{max_out})
+This function returns the minimum and maximum elements of the matrix @var{m},
+storing them in @var{min_out} and @var{max_out}.
+@end deftypefun
+
+@deftypefun int gsl_spmatrix_d2sp (gsl_spmatrix * @var{S}, const gsl_matrix * @var{A})
+This function converts the dense matrix @var{A} into sparse triplet format
+and stores the result in @var{S}.
+@end deftypefun
+
+@deftypefun int gsl_spmatrix_sp2d (gsl_matrix * @var{A}, const gsl_spmatrix * @var{S})
+This function converts the sparse matrix @var{S} into a dense matrix and
+stores the result in @var{A}.
+@end deftypefun
+
+@deftypefun {gsl_spmatrix *} gsl_spmatrix_compcol(const gsl_spmatrix * @var{T})
+This function creates a sparse matrix in compressed column format
+from the input sparse matrix @var{T} which must be in triplet format.
+A pointer to the new matrix is returned. Memory is allocated for the
+new matrix and so @code{gsl_spmatrix_free} must be called when it is
+no longer needed.
+@end deftypefun
+
+@deftypefun int gsl_spblas_dgemv (const double @var{alpha}, const gsl_spmatrix * @var{A}, const gsl_vector * @var{x}, const double @var{beta}, gsl_vector * @var{y})
+This function computes the matrix-vector product and sum
+@math{y = \alpha A x + \beta y}.
+@end deftypefun
+
+@node Examples, References and Further Reading, Functions, Top
+@chapter Examples
+
+@node References and Further Reading, GNU Free Documentation License, Examples, Top
+@chapter References and Further Reading
+
+The algorithms used by these functions are described in the
+following sources:
+
+@node GNU Free Documentation License, Function Index, References and Further Reading, Top
+@unnumbered GNU Free Documentation License
+@include fdl.texi
+
+@node Function Index, Variable Index, GNU Free Documentation License, Top
+@unnumbered Function Index
+
+@printindex fn
+
+@node Variable Index, Type Index, Function Index, Top
+@unnumbered Variable Index
+
+@printindex vr
+
+@node Type Index, Concept Index, Variable Index, Top
+@unnumbered Type Index
+
+@printindex tp
+
+@node Concept Index,  , Type Index, Top
+@unnumbered Concept Index
+
+@printindex cp
+
+@bye
