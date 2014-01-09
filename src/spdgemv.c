@@ -32,70 +32,85 @@ int
 gsl_spblas_dgemv(const double alpha, const gsl_spmatrix *A,
                  const gsl_vector *x, const double beta, gsl_vector *y)
 {
-  int s = GSL_SUCCESS;
-  size_t j, p;
-  size_t lenY = y->size;
-  size_t incY = y->stride;
-  double *X, *Y;
-  double *Ad;
-  size_t *Ap, *Ai, *Aj;
+  const size_t M = A->size1;
+  const size_t N = A->size2;
 
-  /* form y := beta*y */
-
-  Y = y->data;
-
-  if (beta == 0.0)
+  if (N != x->size)
     {
-      size_t jy = 0;
-      for (j = 0; j < lenY; ++j)
-        {
-          Y[jy] = 0.0;
-          jy += incY;
-        }
+      GSL_ERROR("invalid length of x vector", GSL_EBADLEN);
     }
-  else if (beta != 1.0)
+  else if (M != y->size)
     {
-      size_t jy = 0;
-      for (j = 0; j < lenY; ++j)
-        {
-          Y[jy] *= beta;
-          jy += incY;
-        }
-    }
-
-  if (alpha == 0.0)
-    return s;
-
-  /* form y := alpha*A*x + y */
-  Ap = A->p;
-  Ad = A->data;
-  X = x->data;
-
-  if (A->flags & GSL_SPMATRIX_COMPCOL)
-    {
-      Ai = A->i;
-      for (j = 0; j < lenY; ++j)
-        {
-          for (p = Ap[j]; p < Ap[j + 1]; ++p)
-            {
-              Y[Ai[p]] += alpha * Ad[p] * X[j];
-            }
-        }
-    }
-  else if (A->flags & GSL_SPMATRIX_TRIPLET)
-    {
-      Ai = A->i;
-      Aj = A->p;
-
-      for (p = 0; p < A->nz; ++p)
-        {
-          Y[Ai[p]] += alpha * Ad[p] * X[Aj[p]];
-        }
+      GSL_ERROR("invalid length of y vector", GSL_EBADLEN);
     }
   else
     {
-      GSL_ERROR("unsupported matrix type", GSL_EINVAL);
-    }
+      size_t j, p;
+      size_t lenY = y->size;
+      size_t incY = y->stride;
+      size_t incX;
+      double *X, *Y;
+      double *Ad;
+      size_t *Ap, *Ai, *Aj;
 
-  return s;
+      /* form y := beta*y */
+
+      Y = y->data;
+
+      if (beta == 0.0)
+        {
+          size_t jy = 0;
+          for (j = 0; j < lenY; ++j)
+            {
+              Y[jy] = 0.0;
+              jy += incY;
+            }
+        }
+      else if (beta != 1.0)
+        {
+          size_t jy = 0;
+          for (j = 0; j < lenY; ++j)
+            {
+              Y[jy] *= beta;
+              jy += incY;
+            }
+        }
+
+      if (alpha == 0.0)
+        return GSL_SUCCESS;
+
+      /* form y := alpha*A*x + y */
+      Ap = A->p;
+      Ad = A->data;
+      X = x->data;
+      incX = x->stride;
+
+      if (A->flags & GSL_SPMATRIX_COMPCOL)
+        {
+          Ai = A->i;
+          for (j = 0; j < N; ++j)
+            {
+              for (p = Ap[j]; p < Ap[j + 1]; ++p)
+                {
+                  Y[Ai[p] * incY] += alpha * Ad[p] * X[j * incX];
+                }
+            }
+        }
+      else if (A->flags & GSL_SPMATRIX_TRIPLET)
+        {
+          Ai = A->i;
+          Aj = A->p;
+
+          for (p = 0; p < A->nz; ++p)
+            {
+              Y[Ai[p] * incY] += alpha * Ad[p] * X[Aj[p] * incX];
+            }
+        }
+      else
+        {
+          GSL_ERROR("unsupported matrix type", GSL_EINVAL);
+        }
+
+      return GSL_SUCCESS;
+    }
 } /* gsl_spblas_dgemv() */

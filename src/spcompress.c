@@ -1,6 +1,6 @@
 /* spcompress.c
  * 
- * Copyright (C) 2012 Patrick Alken
+ * Copyright (C) 2012-2014 Patrick Alken
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 
 #include "gsl_spmatrix.h"
 
-static int cumulative_sum(size_t *c, size_t *p, size_t n);
+static int cumulative_sum(const size_t n, size_t *c);
 
 /*
 gsl_spmatrix_compcol()
@@ -40,7 +40,8 @@ Return: pointer to new matrix (should be freed when finished with it)
 gsl_spmatrix *
 gsl_spmatrix_compcol(const gsl_spmatrix *T)
 {
-  const size_t *Tj = T->p;
+  const size_t *Tj; /* column indices of triplet matrix */
+  size_t *Cp;       /* column pointers of compressed column matrix */
   gsl_spmatrix *m;
   size_t *c; /* counts of non-zeros in each column */
   size_t nz = T->nz;
@@ -52,31 +53,38 @@ gsl_spmatrix_compcol(const gsl_spmatrix *T)
     return NULL;
 
   /* allocate column pointer array */
-  c = calloc(1, (T->size2 + 1) * sizeof(size_t));
+  c = calloc(1, T->size2 * sizeof(size_t));
   if (!c)
     {
-      GSL_ERROR_VAL("failed to allocate column pointers",
+      GSL_ERROR_VAL("failed to allocate workspace",
                     GSL_ENOMEM, 0);
     }
 
+  Tj = T->p;
+  Cp = m->p;
+
+  /* initialize column pointers to 0 */
+  for (n = 0; n < m->size2 + 1; ++n)
+    Cp[n] = 0;
+
   /*
    * compute the number of elements in each column:
-   * c[j] = # non-zero elements in column j
+   * Cp[j] = # non-zero elements in column j
    */
   for (n = 0; n < nz; ++n)
-    c[Tj[n]]++;
+    Cp[Tj[n]]++;
 
-  /*
-   * now convert to column pointers:
-   *
-   * p[j] = Sum_{i=0...j-1} c[i]
-   */
-  cumulative_sum(c, m->p, m->size2);
+  /* compute column pointers: p[j] = p[j-1] + nnz[j-1] */
+  cumulative_sum(m->size2, Cp);
 
+  /* make a copy of the column pointers */
+  for (n = 0; n < m->size2; ++n)
+    c[n] = Cp[n];
+
+  /* transfer data from triplet format to compressed column */
   for (n = 0; n < nz; ++n)
     {
       size_t k = c[Tj[n]]++;
-
       m->i[k] = T->i[n];
       m->data[k] = T->data[n];
     }
@@ -90,43 +98,40 @@ gsl_spmatrix_compcol(const gsl_spmatrix *T)
 } /* gsl_spmatrix_compcol() */
 
 /*
-cumulative_sum
-  Compute an in-place cumulative sum. Given an array c, compute:
+cumulative_sum()
 
-p[i] = Sum_{j=0...i-1} c[j]
+Compute the cumulative sum:
 
-or as a recurrence relation:
+p[j] = Sum_{k=0...j-1} c[k]
 
+0 <= j < n + 1
+
+Alternatively,
 p[0] = 0
-p[i] = p[i-1] + c[i-1]
+p[j] = p[j - 1] + c[j - 1]
 
-Inputs: c - input array c
-        p - (output) output array of cumulative sums
-        n - number of elements in c array on input
+Inputs: n - length of input array
+        c - (input/output) array of size n + 1
+            on input, contains the n values c[k]
+            on output, contains the n + 1 values p[j]
 
-Notes:
-
-1) output array p is of size (n + 1), with p[n] = Sum_j c[j]
-
-2) on output, p[0:n-1] is copied to c[0:n-1]
+Return: success or error
 */
 
 static int
-cumulative_sum(size_t *c, size_t *p, size_t n)
+cumulative_sum(const size_t n, size_t *c)
 {
-  int s = GSL_SUCCESS;
   size_t sum = 0;
   size_t k;
 
   for (k = 0; k < n; ++k)
     {
-      p[k] = sum;
-      sum += c[k];
-
-      c[k] = p[k];
+      size_t ck = c[k];
+      c[k] = sum;
+      sum += ck;
     }
 
-  p[n] = sum;
+  c[n] = sum;
 
-  return s;
+  return GSL_SUCCESS;
 } /* cumulative_sum() */

@@ -84,6 +84,8 @@ gsl_spmatrix_d2sp(gsl_spmatrix *S, const gsl_matrix *A)
   size_t i, j;
 
   gsl_spmatrix_reset(S);
+  S->size1 = A->size1;
+  S->size2 = A->size2;
 
   for (i = 0; i < A->size1; ++i)
     {

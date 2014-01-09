@@ -38,45 +38,51 @@ int
 test_dgemv_proc(const double alpha, const double beta)
 {
   int s = 0;
-  size_t N_max = 200;
-  size_t N;
+  size_t N_max = 100;
+  size_t N, M;
   gsl_rng *r = gsl_rng_alloc(gsl_rng_default);
   gsl_spmatrix *St = gsl_spmatrix_alloc(1, 1);
   gsl_spmatrix *Sc;
 
-  for (N = 1; N <= N_max; ++N)
+  for (M = 1; M <= N_max; ++M)
     {
-      gsl_matrix *A = gsl_matrix_calloc(N, N);
-      gsl_vector *x = gsl_vector_alloc(N);
-      gsl_vector *y_gsl = gsl_vector_calloc(N);
-      gsl_vector *y_sp = gsl_vector_calloc(N);
+      gsl_vector *y_gsl = gsl_vector_alloc(M);
+      gsl_vector *y_sp = gsl_vector_alloc(M);
 
-      /* create random matrix */
-      test_random_sparse_matrix(A, r, -10.0, 10.0);
+      for (N = 1; N <= N_max; ++N)
+        {
+          gsl_matrix *A = gsl_matrix_calloc(M, N);
+          gsl_vector *x = gsl_vector_alloc(N);
 
-      /* create random vector */
-      test_random_vector(x, r, -10.0, 10.0);
+          /* create random matrix */
+          test_random_sparse_matrix(A, r, -10.0, 10.0);
 
-      gsl_spmatrix_d2sp(St, A);
-      Sc = gsl_spmatrix_compcol(St);
+          /* create random vector */
+          test_random_vector(x, r, -10.0, 10.0);
 
-      /* compute y = A x with gsl */
-      gsl_blas_dgemv(CblasNoTrans, alpha, A, x, beta, y_gsl);
+          gsl_spmatrix_d2sp(St, A);
+          Sc = gsl_spmatrix_compcol(St);
 
-      /* compute y = A x with spblas */
-      gsl_spblas_dgemv(alpha, St, x, beta, y_sp);
-      test_vectors(y_sp, y_gsl, 1.0e-10, "test_dgemv: triplet format");
+          /* compute y = A x with gsl */
+          gsl_vector_set_zero(y_gsl);
+          gsl_blas_dgemv(CblasNoTrans, alpha, A, x, beta, y_gsl);
 
-      gsl_vector_set_zero(y_sp);
+          /* compute y = A x with spblas */
+          gsl_vector_set_zero(y_sp);
+          gsl_spblas_dgemv(alpha, St, x, beta, y_sp);
+          test_vectors(y_sp, y_gsl, 1.0e-9, "test_dgemv: triplet format");
 
-      gsl_spblas_dgemv(alpha, Sc, x, beta, y_sp);
-      test_vectors(y_sp, y_gsl, 1.0e-10, "test_dgemv: compressed column format");
+          gsl_vector_set_zero(y_sp);
+          gsl_spblas_dgemv(alpha, Sc, x, beta, y_sp);
+          test_vectors(y_sp, y_gsl, 1.0e-9, "test_dgemv: compressed column format");
 
-      gsl_matrix_free(A);
-      gsl_vector_free(x);
+          gsl_matrix_free(A);
+          gsl_vector_free(x);
+          gsl_spmatrix_free(Sc);
+        }
+
       gsl_vector_free(y_gsl);
       gsl_vector_free(y_sp);
-      gsl_spmatrix_free(Sc);
     }
 
   gsl_rng_free(r);

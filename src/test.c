@@ -36,13 +36,13 @@ void
 test_random_sparse_matrix(gsl_matrix *m, gsl_rng *r, double lower,
                           double upper)
 {
-  size_t N = m->size1;
-  size_t M = m->size2;
+  size_t M = m->size1;
+  size_t N = m->size2;
   size_t i, j;
   int numel; /* number of non-zero elements in a row */
   double x;
 
-  if (N == 1)
+  if (N == 1 && M == 1)
     {
       x = gsl_rng_uniform(r) * (upper - lower) + lower;
       gsl_matrix_set(m, 0, 0, x);
@@ -51,22 +51,25 @@ test_random_sparse_matrix(gsl_matrix *m, gsl_rng *r, double lower,
 
   gsl_matrix_set_zero(m);
 
-  for (i = 0; i < N; ++i)
+  for (i = 0; i < M; ++i)
     {
-      /* pick a random number between 1 and M/2 - this is how many
+      /* pick a random number between 1 and N/2 - this is how many
        * nonzero elements are in this row
        */
-      numel = (int) (gsl_rng_uniform(r) * (M / 2 - 1) + 1);
+      numel = (int) (gsl_rng_uniform(r) * (N / 2) + 1);
       for (j = 0; j < (size_t) numel; ++j)
         {
-          int k = (int) (gsl_rng_uniform(r) * (M - 2));
+          int k = (int) (gsl_rng_uniform(r) * (N - 1)); /* pick random column in [0,N-1] */
           x = gsl_rng_uniform(r) * (upper - lower) + lower;
           gsl_matrix_set(m, i, k, x);
         }
 
-      /* always set the diagonal element */
-      x = gsl_rng_uniform(r) * (upper - lower) + lower;
-      gsl_matrix_set(m, i, i, x);
+      /* always set the diagonal element if possible */
+      if (i < N)
+        {
+          x = gsl_rng_uniform(r) * (upper - lower) + lower;
+          gsl_matrix_set(m, i, i, x);
+        }
     }
 } /* test_random_sparse_matrix() */
 
@@ -98,7 +101,7 @@ test_vectors(gsl_vector *observed, gsl_vector *expected, const double tol,
       double x_obs = gsl_vector_get(observed, i);
       double x_exp = gsl_vector_get(expected, i);
 
-      gsl_test_rel(x_obs, x_exp, tol, str);
+      gsl_test_rel(x_obs, x_exp, tol, "N=%zu i=%zu %s", N, i, str);
     }
 
   return s;
