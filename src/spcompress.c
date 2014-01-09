@@ -40,19 +40,20 @@ Return: pointer to new matrix (should be freed when finished with it)
 gsl_spmatrix *
 gsl_spmatrix_compcol(const gsl_spmatrix *T)
 {
+  const size_t *Tj = T->p;
   gsl_spmatrix *m;
   size_t *c; /* counts of non-zeros in each column */
   size_t nz = T->nz;
   size_t n;
 
-  m = gsl_spmatrix_alloc_nzmax(T->size1, T->size2, nz);
+  m = gsl_spmatrix_alloc_nzmax(T->size1, T->size2, nz,
+                               GSL_SPMATRIX_COMPCOL);
   if (!m)
     return NULL;
 
   /* allocate column pointer array */
-  m->p = calloc(1, (T->size2 + 1) * sizeof(size_t));
   c = calloc(1, (T->size2 + 1) * sizeof(size_t));
-  if (!m->p || !c)
+  if (!c)
     {
       GSL_ERROR_VAL("failed to allocate column pointers",
                     GSL_ENOMEM, 0);
@@ -63,7 +64,7 @@ gsl_spmatrix_compcol(const gsl_spmatrix *T)
    * c[j] = # non-zero elements in column j
    */
   for (n = 0; n < nz; ++n)
-    c[T->j[n]]++;
+    c[Tj[n]]++;
 
   /*
    * now convert to column pointers:
@@ -74,7 +75,7 @@ gsl_spmatrix_compcol(const gsl_spmatrix *T)
 
   for (n = 0; n < nz; ++n)
     {
-      size_t k = c[T->j[n]]++;
+      size_t k = c[Tj[n]]++;
 
       m->i[k] = T->i[n];
       m->data[k] = T->data[n];

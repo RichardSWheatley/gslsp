@@ -40,7 +40,7 @@ set to 1, and they will be expanded as elements are added to the matrix
 gsl_spmatrix *
 gsl_spmatrix_alloc(const size_t n1, const size_t n2)
 {
-  return gsl_spmatrix_alloc_nzmax(n1, n2, GSL_SPMATRIX_NZMAX);
+  return gsl_spmatrix_alloc_nzmax(n1, n2, GSL_SPMATRIX_NZMAX, GSL_SPMATRIX_TRIPLET);
 } /* gsl_spmatrix_alloc() */
 
 /*
@@ -50,6 +50,7 @@ gsl_spmatrix_alloc_nzmax()
 Inputs: n1    - number of rows
         n2    - number of columns
         nzmax - maximum number of matrix elements
+        flags - type of matrix (triplet, compressed column)
 
 Notes: if (n1,n2) are not known at allocation time, they can each be
 set to 1, and they will be expanded as elements are added to the matrix
@@ -57,7 +58,7 @@ set to 1, and they will be expanded as elements are added to the matrix
 
 gsl_spmatrix *
 gsl_spmatrix_alloc_nzmax(const size_t n1, const size_t n2,
-                         const size_t nzmax)
+                         const size_t nzmax, const size_t flags)
 {
   gsl_spmatrix *m;
 
@@ -93,11 +94,15 @@ gsl_spmatrix_alloc_nzmax(const size_t n1, const size_t n2,
                     GSL_ENOMEM, 0);
     }
 
-  m->j = malloc(m->nzmax * sizeof(size_t));
-  if (!m->j)
+  if (flags == GSL_SPMATRIX_TRIPLET)
+    m->p = malloc(m->nzmax * sizeof(size_t));
+  else if (flags == GSL_SPMATRIX_COMPCOL)
+    m->p = malloc((n2 + 1) * sizeof(size_t));
+
+  if (!m->p)
     {
       gsl_spmatrix_free(m);
-      GSL_ERROR_VAL("failed to allocate space for column indices",
+      GSL_ERROR_VAL("failed to allocate space for column indices or pointers",
                     GSL_ENOMEM, 0);
     }
 
@@ -122,9 +127,6 @@ gsl_spmatrix_free(gsl_spmatrix *m)
 {
   if (m->i)
     free(m->i);
-
-  if (m->j)
-    free(m->j);
 
   if (m->p)
     free(m->p);
@@ -161,13 +163,13 @@ gsl_spmatrix_realloc(const size_t nzmax, gsl_spmatrix *m)
 
   m->i = (size_t *) ptr;
 
-  ptr = realloc(m->j, nzmax * sizeof(size_t));
+  ptr = realloc(m->p, nzmax * sizeof(size_t));
   if (!ptr)
     {
       GSL_ERROR("failed to allocate space for column indices", GSL_ENOMEM);
     }
 
-  m->j = (size_t *) ptr;
+  m->p = (size_t *) ptr;
 
   ptr = realloc(m->data, nzmax * sizeof(double));
   if (!ptr)

@@ -118,7 +118,7 @@ gsl_spmatrix_sp2d(gsl_matrix *A, const gsl_spmatrix *S)
       for (n = 0; n < S->nz; ++n)
         {
           size_t i = S->i[n];
-          size_t j = S->j[n];
+          size_t j = S->p[n];
           double x = S->data[n];
 
           gsl_matrix_set(A, i, j, x);

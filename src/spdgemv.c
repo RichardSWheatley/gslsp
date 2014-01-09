@@ -85,7 +85,7 @@ gsl_spblas_dgemv(const double alpha, const gsl_spmatrix *A,
   else if (A->flags & GSL_SPMATRIX_TRIPLET)
     {
       Ai = A->i;
-      Aj = A->j;
+      Aj = A->p;
 
       for (p = 0; p < A->nz; ++p)
         {

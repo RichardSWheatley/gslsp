@@ -38,18 +38,34 @@
 
 __BEGIN_DECLS
 
+/*
+ * Triplet format:
+ *
+ * If data[n] = A_{ij}, then:
+ *   i = A->i[n]
+ *   j = A->p[n]
+ *
+ * Compressed column format:
+ *
+ * If data[n] = A_{ij}, then:
+ *   i = A->i[n]
+ *   A->p[j] <= n < A->p[j+1]
+ * so that column j is stored in
+ * [ data[p[j]], data[p[j] + 1], ..., data[p[j+1] - 1] ]
+ */
+
 typedef struct
 {
   size_t size1; /* number of rows */
   size_t size2; /* number of columns */
 
   size_t *i;    /* row indices of size nzmax */
-  size_t *j;    /* column indices of size nzmax */
   double *data; /* matrix elements of size nzmax */
 
   /*
-   * p contains the column or row pointers.
+   * p contains the column indices (triplet) or column pointers (compcol)
    *
+   * triplet:   p[n] = column number of element data[n]
    * comp. col: p[j] = index in data of first non-zero element in column j
    * comp. row: p[i] = index in data of first non-zero element in row i
    */
@@ -63,7 +79,7 @@ typedef struct
 
 #define GSL_SPMATRIX_TRIPLET      (1 << 0)
 #define GSL_SPMATRIX_COMPCOL      (1 << 1)
-#define GSL_SPMATRIX_COMPROW      (1 << 1)
+#define GSL_SPMATRIX_COMPROW      (1 << 2)
 
 /* default value of nzmax */
 #define GSL_SPMATRIX_NZMAX        10000
@@ -77,7 +93,7 @@ typedef struct
 
 gsl_spmatrix *gsl_spmatrix_alloc(const size_t n1, const size_t n2);
 gsl_spmatrix *gsl_spmatrix_alloc_nzmax(const size_t n1, const size_t n2,
-                                       const size_t nzmax);
+                                       const size_t nzmax, const size_t flags);
 void gsl_spmatrix_free(gsl_spmatrix *m);
 int gsl_spmatrix_realloc(const size_t nzmax, gsl_spmatrix *m);
 int gsl_spmatrix_reset(gsl_spmatrix *m);
@@ -96,6 +112,9 @@ int gsl_spmatrix_minmax(const gsl_spmatrix *m, double *min_out,
                         double *max_out);
 int gsl_spmatrix_d2sp(gsl_spmatrix *S, const gsl_matrix *A);
 int gsl_spmatrix_sp2d(gsl_matrix *A, const gsl_spmatrix *S);
+
+/* spswap.c */
+int gsl_spmatrix_transpose_memcpy(gsl_spmatrix *dest, const gsl_spmatrix *src);
 
 /* spblas */
 int gsl_spblas_dgemv(const double alpha, const gsl_spmatrix *A,

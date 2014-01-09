@@ -36,10 +36,12 @@ gsl_spmatrix_get(const gsl_spmatrix *m, const size_t i, const size_t j)
   else
     {
       size_t n;
+      const size_t *Ti = m->i;
+      const size_t *Tj = m->p;
 
       for (n = 0; n < m->nz; ++n)
         {
-          if (m->i[n] == i && m->j[n] == j)
+          if (Ti[n] == i && Tj[n] == j)
             return m->data[n];
         }
 
@@ -81,7 +83,7 @@ gsl_spmatrix_set(gsl_spmatrix *m, const size_t i, const size_t j,
 
       /* store the triplet (i, j, x) */
       m->i[m->nz] = i;
-      m->j[m->nz] = j;
+      m->p[m->nz] = j;
       m->data[m->nz] = x;
 
       /* increase matrix dimensions if needed */
