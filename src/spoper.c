@@ -30,10 +30,10 @@
 int
 gsl_spmatrix_scale(gsl_spmatrix *m, const double x)
 {
-  size_t n;
+  size_t i;
 
-  for (n = 0; n < m->nz; ++n)
-    m->data[n] *= x;
+  for (i = 0; i < m->nz; ++i)
+    m->data[i] *= x;
 
   return GSL_SUCCESS;
 } /* gsl_spmatrix_scale() */

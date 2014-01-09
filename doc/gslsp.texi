@@ -209,7 +209,7 @@ the value @var{x}. The matrix must be in triplet representation.
 
 @deftypefun int gsl_spmatrix_scale (gsl_spmatrix * @var{m}, const double @var{x})
 This function scales all elements of the matrix @var{m} by the constant
-factor @var{x}.
+factor @var{x}. The result @math{m(i,j) \leftarrow x m(i,j)} is stored in @var{m}.
 @end deftypefun
 
 @deftypefun int gsl_spmatrix_minmax (const gsl_spmatrix * @var{m}, double * @var{min_out}, double * @var{max_out})
