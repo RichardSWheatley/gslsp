@@ -46,9 +46,7 @@ gsl_spblas_dgemv(const double alpha, const gsl_spmatrix *A,
   else
     {
       size_t j, p;
-      size_t lenY = y->size;
-      size_t incY = y->stride;
-      size_t incX;
+      size_t incX, incY;
       double *X, *Y;
       double *Ad;
       size_t *Ap, *Ai, *Aj;
@@ -56,11 +54,12 @@ gsl_spblas_dgemv(const double alpha, const gsl_spmatrix *A,
       /* form y := beta*y */
 
       Y = y->data;
+      incY = y->stride;
 
       if (beta == 0.0)
         {
           size_t jy = 0;
-          for (j = 0; j < lenY; ++j)
+          for (j = 0; j < M; ++j)
             {
               Y[jy] = 0.0;
               jy += incY;
@@ -69,7 +68,7 @@ gsl_spblas_dgemv(const double alpha, const gsl_spmatrix *A,
       else if (beta != 1.0)
         {
           size_t jy = 0;
-          for (j = 0; j < lenY; ++j)
+          for (j = 0; j < M; ++j)
             {
               Y[jy] *= beta;
               jy += incY;

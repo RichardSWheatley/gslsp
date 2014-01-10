@@ -41,6 +41,7 @@ test_dgemv_proc(const double alpha, const double beta)
   size_t N_max = 100;
   gsl_matrix *A = gsl_matrix_alloc(N_max, N_max);
   gsl_vector *x = gsl_vector_alloc(N_max);
+  gsl_vector *y0 = gsl_vector_alloc(N_max);
   gsl_vector *y1 = gsl_vector_alloc(N_max);
   gsl_vector *y2 = gsl_vector_alloc(N_max);
   gsl_rng *r = gsl_rng_alloc(gsl_rng_default);
@@ -50,6 +51,7 @@ test_dgemv_proc(const double alpha, const double beta)
 
   for (M = 1; M <= N_max; ++M)
     {
+      gsl_vector_view y0v = gsl_vector_subvector(y0, 0, M);
       gsl_vector_view y_gsl = gsl_vector_subvector(y1, 0, M);
       gsl_vector_view y_sp = gsl_vector_subvector(y2, 0, M);
 
@@ -63,21 +65,24 @@ test_dgemv_proc(const double alpha, const double beta)
 
           /* create random vector */
           test_random_vector(&xv.vector, r, -10.0, 10.0);
+          test_random_vector(&y0v.vector, r, -10.0, 10.0);
+
+          gsl_vector_memcpy(&y_gsl.vector, &y0v.vector);
+          gsl_vector_memcpy(&y_sp.vector, &y0v.vector);
 
           gsl_spmatrix_d2sp(St, &Av.matrix);
-          Sc = gsl_spmatrix_compcol(St);
 
-          /* compute y = A x with gsl */
-          gsl_vector_set_zero(&y_gsl.vector);
+          /* compute y = alpha*A*x + beta*y0 with gsl */
           gsl_blas_dgemv(CblasNoTrans, alpha, &Av.matrix, &xv.vector, beta, &y_gsl.vector);
 
-          /* compute y = A x with spblas */
-          gsl_vector_set_zero(&y_sp.vector);
+          /* compute y = alpha*A*x + beta*y0 with spblas/triplet */
           gsl_spblas_dgemv(alpha, St, &xv.vector, beta, &y_sp.vector);
           test_vectors(&y_sp.vector, &y_gsl.vector, 1.0e-9,
                        "test_dgemv: triplet format");
 
-          gsl_vector_set_zero(&y_sp.vector);
+          /* compute y = alpha*A*x + beta*y0 with spblas/compcol */
+          Sc = gsl_spmatrix_compcol(St);
+          gsl_vector_memcpy(&y_sp.vector, &y0v.vector);
           gsl_spblas_dgemv(alpha, Sc, &xv.vector, beta, &y_sp.vector);
           test_vectors(&y_sp.vector, &y_gsl.vector, 1.0e-9,
                        "test_dgemv: compressed column format");
@@ -88,6 +93,7 @@ test_dgemv_proc(const double alpha, const double beta)
 
   gsl_matrix_free(A);
   gsl_vector_free(x);
+  gsl_vector_free(y0);
   gsl_vector_free(y1);
   gsl_vector_free(y2);
   gsl_rng_free(r);

@@ -1,6 +1,6 @@
 /* gsl_spmatrix.h
  * 
- * Copyright (C) 2012 Patrick Alken
+ * Copyright (C) 2012-2014 Patrick Alken
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,6 +73,8 @@ typedef struct
 
   size_t nzmax; /* maximum number of matrix elements */
   size_t nz;    /* number of non-zero values in matrix */
+
+  size_t *work; /* workspace of size size2 used in gsl_spmatrix_compcol() */
 
   size_t flags;
 } gsl_spmatrix;

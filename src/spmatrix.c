@@ -95,15 +95,25 @@ gsl_spmatrix_alloc_nzmax(const size_t n1, const size_t n2,
     }
 
   if (flags == GSL_SPMATRIX_TRIPLET)
-    m->p = malloc(m->nzmax * sizeof(size_t));
-  else if (flags == GSL_SPMATRIX_COMPCOL)
-    m->p = malloc((n2 + 1) * sizeof(size_t));
-
-  if (!m->p)
     {
-      gsl_spmatrix_free(m);
-      GSL_ERROR_VAL("failed to allocate space for column indices or pointers",
-                    GSL_ENOMEM, 0);
+      m->p = malloc(m->nzmax * sizeof(size_t));
+      if (!m->p)
+        {
+          gsl_spmatrix_free(m);
+          GSL_ERROR_VAL("failed to allocate space for column indices",
+                        GSL_ENOMEM, 0);
+        }
+    }
+  else if (flags == GSL_SPMATRIX_COMPCOL)
+    {
+      m->p = malloc((n2 + 1) * sizeof(size_t));
+      m->work = malloc(n2 * sizeof(size_t));
+      if (!m->p || !m->work)
+        {
+          gsl_spmatrix_free(m);
+          GSL_ERROR_VAL("failed to allocate space for column pointers",
+                        GSL_ENOMEM, 0);
+        }
     }
 
   m->data = malloc(m->nzmax * sizeof(double));
@@ -133,6 +143,9 @@ gsl_spmatrix_free(gsl_spmatrix *m)
 
   if (m->data)
     free(m->data);
+
+  if (m->work)
+    free(m->work);
 
   free(m);
 } /* gsl_spmatrix_free() */

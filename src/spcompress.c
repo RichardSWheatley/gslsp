@@ -42,23 +42,14 @@ gsl_spmatrix_compcol(const gsl_spmatrix *T)
 {
   const size_t *Tj; /* column indices of triplet matrix */
   size_t *Cp;       /* column pointers of compressed column matrix */
+  size_t *w;        /* copy of column pointers */
   gsl_spmatrix *m;
-  size_t *c; /* counts of non-zeros in each column */
-  size_t nz = T->nz;
   size_t n;
 
-  m = gsl_spmatrix_alloc_nzmax(T->size1, T->size2, nz,
+  m = gsl_spmatrix_alloc_nzmax(T->size1, T->size2, T->nz,
                                GSL_SPMATRIX_COMPCOL);
   if (!m)
     return NULL;
-
-  /* allocate column pointer array */
-  c = calloc(1, T->size2 * sizeof(size_t));
-  if (!c)
-    {
-      GSL_ERROR_VAL("failed to allocate workspace",
-                    GSL_ENOMEM, 0);
-    }
 
   Tj = T->p;
   Cp = m->p;
@@ -71,25 +62,24 @@ gsl_spmatrix_compcol(const gsl_spmatrix *T)
    * compute the number of elements in each column:
    * Cp[j] = # non-zero elements in column j
    */
-  for (n = 0; n < nz; ++n)
+  for (n = 0; n < T->nz; ++n)
     Cp[Tj[n]]++;
 
   /* compute column pointers: p[j] = p[j-1] + nnz[j-1] */
   cumulative_sum(m->size2, Cp);
 
   /* make a copy of the column pointers */
+  w = m->work;
   for (n = 0; n < m->size2; ++n)
-    c[n] = Cp[n];
+    w[n] = Cp[n];
 
   /* transfer data from triplet format to compressed column */
-  for (n = 0; n < nz; ++n)
+  for (n = 0; n < T->nz; ++n)
     {
-      size_t k = c[Tj[n]]++;
+      size_t k = w[Tj[n]]++;
       m->i[k] = T->i[n];
       m->data[k] = T->data[n];
     }
-
-  free(c);
 
   m->nz = T->nz;
   m->flags = GSL_SPMATRIX_COMPCOL;
