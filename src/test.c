@@ -230,18 +230,15 @@ test_dgemv(const double alpha, const double beta, const gsl_rng *r)
 int
 main()
 {
-  const size_t N_max = 30;
-  size_t M, N;
   gsl_rng *r = gsl_rng_alloc(gsl_rng_default);
 
-  for (M = 1; M <= N_max; ++M)
-    {
-      for (N = 1; N <= N_max; ++N)
-        {
-          test_memcpy(M, N, r);
-          test_getset(M, N);
-        }
-    }
+  test_memcpy(10, 10, r);
+  test_memcpy(10, 15, r);
+  test_memcpy(53, 213, r);
+
+  test_getset(20, 20);
+  test_getset(30, 20);
+  test_getset(15, 210);
 
   test_dgemv(1.0, 0.0, r);
   test_dgemv(2.4, -0.5, r);
