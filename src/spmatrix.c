@@ -45,7 +45,7 @@ gsl_spmatrix_alloc(const size_t n1, const size_t n2)
 
 /*
 gsl_spmatrix_alloc_nzmax()
-  Allocate a sparse matrix in triplet representation
+  Allocate a sparse matrix with given nzmax
 
 Inputs: n1    - number of rows
         n2    - number of columns
@@ -84,7 +84,7 @@ gsl_spmatrix_alloc_nzmax(const size_t n1, const size_t n2,
   m->size2 = n2;
   m->nz = 0;
   m->nzmax = GSL_MAX(nzmax, 1);
-  m->flags = GSL_SPMATRIX_TRIPLET;
+  m->flags = flags;
 
   m->i = malloc(m->nzmax * sizeof(size_t));
   if (!m->i)

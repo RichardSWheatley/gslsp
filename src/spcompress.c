@@ -82,7 +82,6 @@ gsl_spmatrix_compcol(const gsl_spmatrix *T)
     }
 
   m->nz = T->nz;
-  m->flags = GSL_SPMATRIX_COMPCOL;
 
   return m;
 } /* gsl_spmatrix_compcol() */

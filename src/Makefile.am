@@ -1,6 +1,7 @@
 lib_LTLIBRARIES = libgslsp.la
 libgslsp_la_SOURCES = \
   spcompress.c        \
+	spcopy.c            \
   spdgemv.c           \
   spgetset.c          \
   spmatrix.c          \
