@@ -154,7 +154,36 @@ test_vectors(gsl_vector *observed, gsl_vector *expected, const double tol,
   return s;
 } /* test_vectors() */
 
-void
+static void
+test_getset(const size_t M, const size_t N, const gsl_rng *r)
+{
+  int status;
+  size_t i, j;
+  size_t k = 0;
+  gsl_spmatrix *m = gsl_spmatrix_alloc(M, N);
+
+  status = 0;
+  for (i = 0; i < M; ++i)
+    {
+      for (j = 0; j < N; ++j)
+        {
+          double x = (double) ++k;
+          double y;
+
+          gsl_spmatrix_set(m, i, j, x);
+          y = gsl_spmatrix_get(m, i, j);
+
+          if (x != y)
+            status = 1;
+        }
+    }
+
+  gsl_test(status, "test_getset: M=%zu N=%zu _get != _set", M, N);
+
+  gsl_spmatrix_free(m);
+} /* test_getset() */
+
+static void
 test_memcpy(const size_t M, const size_t N, const gsl_rng *r)
 {
   int status;
@@ -181,11 +210,18 @@ test_memcpy(const size_t M, const size_t N, const gsl_rng *r)
 int
 main()
 {
+  const size_t N_max = 20;
+  size_t M, N;
   gsl_rng *r = gsl_rng_alloc(gsl_rng_default);
 
-  test_memcpy(10, 15, r);
-  test_memcpy(20, 20, r);
-  test_memcpy(53, 213, r);
+  for (M = 1; M <= N_max; ++M)
+    {
+      for (N = 1; N <= N_max; ++N)
+        {
+          test_memcpy(M, N, r);
+          test_getset(M, N, r);
+        }
+    }
 
 #if 0
   fprintf(stderr, "test: getset...");

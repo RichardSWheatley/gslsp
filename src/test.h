@@ -27,7 +27,6 @@ void test_random_vector(gsl_vector *v, gsl_rng *r, double lower,
 int test_vectors(gsl_vector *observed, gsl_vector *expected,
                  const double tol, const char *str);
 
-int test_getset(void);
 int test_dgemv(void);
 
 #endif /* __TEST_H__ */
