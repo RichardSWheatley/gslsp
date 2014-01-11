@@ -40,7 +40,7 @@ M*N*density non-zero entries
 
 Inputs: M       - number of rows
         N       - number of columns
-        density - sparse density \in (0,1)
+        density - sparse density \in [0,1]
                   0 = no non-zero entries
                   1 = all m*n entries are filled
         r       - random number generator
@@ -69,7 +69,7 @@ create_random_sparse(const size_t M, const size_t N, const double density,
       assert(i < M);
       assert(j < N);
 
-      /* check if this row/column is already filled */
+      /* check if this position is already filled */
       if (gsl_spmatrix_get(m, i, j) != 0.0)
         continue;
 
