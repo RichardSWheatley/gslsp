@@ -10,7 +10,7 @@ libgslsp_la_SOURCES = \
 	spswap.c
 
 check_PROGRAMS = test
-test_SOURCES = test.c test_dgemv.c
+test_SOURCES = test.c
 
 TESTS = $(check_PROGRAMS)
 

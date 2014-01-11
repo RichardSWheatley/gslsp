@@ -109,27 +109,32 @@ gsl_spmatrix_sp2d()
 int
 gsl_spmatrix_sp2d(gsl_matrix *A, const gsl_spmatrix *S)
 {
-  int s = GSL_SUCCESS;
-
-  gsl_matrix_set_zero(A);
-
-  if (GSLSP_ISTRIPLET(S))
+  if (A->size1 != S->size1 || A->size2 != S->size2)
     {
-      size_t n;
-
-      for (n = 0; n < S->nz; ++n)
-        {
-          size_t i = S->i[n];
-          size_t j = S->p[n];
-          double x = S->data[n];
-
-          gsl_matrix_set(A, i, j, x);
-        }
+      GSL_ERROR("matrix sizes do not match", GSL_EBADLEN);
     }
   else
     {
-      GSL_ERROR("non-triplet formats not yet supported", GSL_EINVAL);
-    }
+      gsl_matrix_set_zero(A);
 
-  return s;
+      if (GSLSP_ISTRIPLET(S))
+        {
+          size_t n;
+
+          for (n = 0; n < S->nz; ++n)
+            {
+              size_t i = S->i[n];
+              size_t j = S->p[n];
+              double x = S->data[n];
+
+              gsl_matrix_set(A, i, j, x);
+            }
+        }
+      else
+        {
+          GSL_ERROR("non-triplet formats not yet supported", GSL_EINVAL);
+        }
+
+      return GSL_SUCCESS;
+    }
 } /* gsl_spmatrix_sp2d() */

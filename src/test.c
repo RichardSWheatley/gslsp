@@ -29,9 +29,9 @@
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_test.h>
+#include <gsl/gsl_blas.h>
 
 #include "gsl_spmatrix.h"
-#include "test.h"
 
 /*
 create_random_sparse()
@@ -46,6 +46,9 @@ Inputs: M       - number of rows
         r       - random number generator
 
 Return: pointer to sparse matrix in triplet format (must be freed by caller)
+
+Notes:
+1) non-zero matrix entries are uniformly distributed in [0,1]
 */
 
 static gsl_spmatrix *
@@ -79,61 +82,17 @@ create_random_sparse(const size_t M, const size_t N, const double density,
   return m;
 } /* create_random_sparse() */
 
-void
-test_random_sparse_matrix(gsl_matrix *m, gsl_rng *r, double lower,
-                          double upper)
+static void
+create_random_vector(gsl_vector *v, const gsl_rng *r)
 {
-  size_t M = m->size1;
-  size_t N = m->size2;
-  size_t i, j;
-  int numel; /* number of non-zero elements in a row */
-  double x;
-
-  if (N == 1 && M == 1)
-    {
-      x = gsl_rng_uniform(r) * (upper - lower) + lower;
-      gsl_matrix_set(m, 0, 0, x);
-      return;
-    }
-
-  gsl_matrix_set_zero(m);
-
-  for (i = 0; i < M; ++i)
-    {
-      /* pick a random number between 1 and N/2 - this is how many
-       * nonzero elements are in this row
-       */
-      numel = (int) (gsl_rng_uniform(r) * (N / 2) + 1);
-      for (j = 0; j < (size_t) numel; ++j)
-        {
-          int k = (int) (gsl_rng_uniform(r) * (N - 1)); /* pick random column in [0,N-1] */
-          x = gsl_rng_uniform(r) * (upper - lower) + lower;
-          gsl_matrix_set(m, i, k, x);
-        }
-
-      /* always set the diagonal element if possible */
-      if (i < N)
-        {
-          x = gsl_rng_uniform(r) * (upper - lower) + lower;
-          gsl_matrix_set(m, i, i, x);
-        }
-    }
-} /* test_random_sparse_matrix() */
-
-void
-test_random_vector(gsl_vector *v, gsl_rng *r, double lower,
-                   double upper)
-{
-  size_t N = v->size;
   size_t i;
-  double x;
 
-  for (i = 0; i < N; ++i)
+  for (i = 0; i < v->size; ++i)
     {
-      x = gsl_rng_uniform(r) * (upper - lower) + lower;
+      double x = gsl_rng_uniform(r);
       gsl_vector_set(v, i, x);
     }
-} /* test_random_vector() */
+} /* create_random_vector() */
 
 int
 test_vectors(gsl_vector *observed, gsl_vector *expected, const double tol,
@@ -155,7 +114,7 @@ test_vectors(gsl_vector *observed, gsl_vector *expected, const double tol,
 } /* test_vectors() */
 
 static void
-test_getset(const size_t M, const size_t N, const gsl_rng *r)
+test_getset(const size_t M, const size_t N)
 {
   int status;
   size_t i, j;
@@ -207,10 +166,71 @@ test_memcpy(const size_t M, const size_t N, const gsl_rng *r)
   gsl_spmatrix_free(d);
 } /* test_memcpy() */
 
+void
+test_dgemv(const double alpha, const double beta, const gsl_rng *r)
+{
+  size_t N_max = 50;
+  gsl_matrix *A = gsl_matrix_alloc(N_max, N_max);
+  gsl_vector *x = gsl_vector_alloc(N_max);
+  gsl_vector *y0 = gsl_vector_alloc(N_max);
+  gsl_vector *y1 = gsl_vector_alloc(N_max);
+  gsl_vector *y2 = gsl_vector_alloc(N_max);
+  size_t N, M;
+
+  for (M = 1; M <= N_max; ++M)
+    {
+      gsl_vector_view y = gsl_vector_subvector(y0, 0, M);
+      gsl_vector_view y_gsl = gsl_vector_subvector(y1, 0, M);
+      gsl_vector_view y_sp = gsl_vector_subvector(y2, 0, M);
+
+      for (N = 1; N <= N_max; ++N)
+        {
+          gsl_matrix_view Av = gsl_matrix_submatrix(A, 0, 0, M, N);
+          gsl_vector_view xv = gsl_vector_subvector(x, 0, N);
+          gsl_spmatrix *mt = create_random_sparse(M, N, 0.2, r);
+          gsl_spmatrix *mc;
+
+          /* create random dense vectors */
+          create_random_vector(&xv.vector, r);
+          create_random_vector(&y.vector, r);
+
+          gsl_vector_memcpy(&y_gsl.vector, &y.vector);
+          gsl_vector_memcpy(&y_sp.vector, &y.vector);
+
+          /* copy mt into A */
+          gsl_spmatrix_sp2d(&Av.matrix, mt);
+
+          /* compute y = alpha*A*x + beta*y0 with gsl */
+          gsl_blas_dgemv(CblasNoTrans, alpha, &Av.matrix, &xv.vector, beta, &y_gsl.vector);
+
+          /* compute y = alpha*A*x + beta*y0 with spblas/triplet */
+          gsl_spblas_dgemv(alpha, mt, &xv.vector, beta, &y_sp.vector);
+          test_vectors(&y_sp.vector, &y_gsl.vector, 1.0e-12,
+                       "test_dgemv: triplet format");
+
+          /* compute y = alpha*A*x + beta*y0 with spblas/compcol */
+          mc = gsl_spmatrix_compcol(mt);
+          gsl_vector_memcpy(&y_sp.vector, &y.vector);
+          gsl_spblas_dgemv(alpha, mc, &xv.vector, beta, &y_sp.vector);
+          test_vectors(&y_sp.vector, &y_gsl.vector, 1.0e-12,
+                       "test_dgemv: compressed column format");
+
+          gsl_spmatrix_free(mc);
+          gsl_spmatrix_free(mt);
+        }
+    }
+
+  gsl_matrix_free(A);
+  gsl_vector_free(x);
+  gsl_vector_free(y0);
+  gsl_vector_free(y1);
+  gsl_vector_free(y2);
+} /* test_dgemv() */
+
 int
 main()
 {
-  const size_t N_max = 20;
+  const size_t N_max = 30;
   size_t M, N;
   gsl_rng *r = gsl_rng_alloc(gsl_rng_default);
 
@@ -219,19 +239,13 @@ main()
       for (N = 1; N <= N_max; ++N)
         {
           test_memcpy(M, N, r);
-          test_getset(M, N, r);
+          test_getset(M, N);
         }
     }
 
-#if 0
-  fprintf(stderr, "test: getset...");
-  s += test_getset();
-  fprintf(stderr, "done (s = %d)\n", s);
-
-  fprintf(stderr, "test: dgemv...");
-  s += test_dgemv();
-  fprintf(stderr, "done (s = %d)\n", s);
-#endif
+  test_dgemv(1.0, 0.0, r);
+  test_dgemv(2.4, -0.5, r);
+  test_dgemv(0.1, 10.0, r);
 
   gsl_rng_free(r);
 
