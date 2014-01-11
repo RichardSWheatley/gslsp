@@ -6,6 +6,7 @@ libgslsp_la_SOURCES = \
   spgetset.c          \
   spmatrix.c          \
   spoper.c            \
+	spprop.c            \
 	spswap.c
 
 check_PROGRAMS = test

@@ -101,11 +101,16 @@ int gsl_spmatrix_realloc(const size_t nzmax, gsl_spmatrix *m);
 int gsl_spmatrix_reset(gsl_spmatrix *m);
 size_t gsl_spmatrix_nnz(const gsl_spmatrix *m);
 
+/* spcopy.c */
+gsl_spmatrix *gsl_spmatrix_memcpy(const gsl_spmatrix *src);
+
+/* spgetset.c */
 double gsl_spmatrix_get(const gsl_spmatrix *m, const size_t i,
                         const size_t j);
 int gsl_spmatrix_set(gsl_spmatrix *m, const size_t i, const size_t j,
                      const double x);
 
+/* spcompress.c */
 gsl_spmatrix *gsl_spmatrix_compcol(const gsl_spmatrix *T);
 
 /* spoper.c */
@@ -114,6 +119,9 @@ int gsl_spmatrix_minmax(const gsl_spmatrix *m, double *min_out,
                         double *max_out);
 int gsl_spmatrix_d2sp(gsl_spmatrix *S, const gsl_matrix *A);
 int gsl_spmatrix_sp2d(gsl_matrix *A, const gsl_spmatrix *S);
+
+/* spprop.c */
+int gsl_spmatrix_equal(const gsl_spmatrix *a, const gsl_spmatrix *b);
 
 /* spswap.c */
 int gsl_spmatrix_transpose_memcpy(gsl_spmatrix *dest, const gsl_spmatrix *src);

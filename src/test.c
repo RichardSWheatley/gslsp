@@ -1,6 +1,6 @@
 /* test.c
  * 
- * Copyright (C) 2012 Patrick Alken
+ * Copyright (C) 2012-2014 Patrick Alken
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
 
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_errno.h>
@@ -31,6 +32,52 @@
 
 #include "gsl_spmatrix.h"
 #include "test.h"
+
+/*
+create_random_sparse()
+  Create a random sparse matrix with approximately
+M*N*density non-zero entries
+
+Inputs: M       - number of rows
+        N       - number of columns
+        density - sparse density \in (0,1)
+                  0 = no non-zero entries
+                  1 = all m*n entries are filled
+        r       - random number generator
+
+Return: pointer to sparse matrix in triplet format (must be freed by caller)
+*/
+
+static gsl_spmatrix *
+create_random_sparse(const size_t M, const size_t N, const double density,
+                     const gsl_rng *r)
+{
+  gsl_spmatrix *m = gsl_spmatrix_alloc(M, N);
+  size_t nnzwanted = (size_t) round(M * N * GSL_MIN(density, 1.0));
+  size_t n = 0;
+
+  while (n <= nnzwanted)
+    {
+      /* generate a random row and column */
+      size_t i = gsl_rng_uniform(r) * M;
+      size_t j = gsl_rng_uniform(r) * N;
+      double x;
+
+      assert(i < M);
+      assert(j < N);
+
+      /* check if this row/column is already filled */
+      if (gsl_spmatrix_get(m, i, j) != 0.0)
+        continue;
+
+      /* generate random m_{ij} and add it */
+      x = gsl_rng_uniform(r);
+      gsl_spmatrix_set(m, i, j, x);
+      ++n;
+    }
+
+  return m;
+} /* create_random_sparse() */
 
 void
 test_random_sparse_matrix(gsl_matrix *m, gsl_rng *r, double lower,
@@ -107,11 +154,40 @@ test_vectors(gsl_vector *observed, gsl_vector *expected, const double tol,
   return s;
 } /* test_vectors() */
 
+void
+test_memcpy(const size_t M, const size_t N, const gsl_rng *r)
+{
+  int status;
+  gsl_spmatrix *a = create_random_sparse(M, N, 0.2, r);
+  gsl_spmatrix *b, *c, *d;
+  
+  b = gsl_spmatrix_memcpy(a);
+
+  status = gsl_spmatrix_equal(a, b) != 1;
+  gsl_test(status, "test_memcpy: M=%zu N=%zu triplet format", M, N);
+
+  c = gsl_spmatrix_compcol(a);
+  d = gsl_spmatrix_memcpy(c);
+
+  status = gsl_spmatrix_equal(c, d) != 1;
+  gsl_test(status, "test_memcpy: M=%zu N=%zu compressed column format", M, N);
+
+  gsl_spmatrix_free(a);
+  gsl_spmatrix_free(b);
+  gsl_spmatrix_free(c);
+  gsl_spmatrix_free(d);
+} /* test_memcpy() */
+
 int
 main()
 {
-  int s = 0;
+  gsl_rng *r = gsl_rng_alloc(gsl_rng_default);
 
+  test_memcpy(10, 15, r);
+  test_memcpy(20, 20, r);
+  test_memcpy(53, 213, r);
+
+#if 0
   fprintf(stderr, "test: getset...");
   s += test_getset();
   fprintf(stderr, "done (s = %d)\n", s);
@@ -119,6 +195,9 @@ main()
   fprintf(stderr, "test: dgemv...");
   s += test_dgemv();
   fprintf(stderr, "done (s = %d)\n", s);
+#endif
+
+  gsl_rng_free(r);
 
   exit (gsl_test_summary());
 } /* main() */

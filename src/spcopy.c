@@ -51,7 +51,7 @@ gsl_spmatrix_memcpy(const gsl_spmatrix *src)
           dest->data[n] = src->data[n];
         }
 
-      for (n = 0; n < src->size2; ++n)
+      for (n = 0; n < src->size2 + 1; ++n)
         {
           dest->p[n] = src->p[n];
         }
