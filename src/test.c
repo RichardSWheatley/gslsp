@@ -114,62 +114,123 @@ test_vectors(gsl_vector *observed, gsl_vector *expected, const double tol,
 } /* test_vectors() */
 
 static void
-test_getset(const size_t M, const size_t N)
+test_getset(const size_t M, const size_t N, const gsl_rng *r)
 {
   int status;
   size_t i, j;
-  size_t k = 0;
-  gsl_spmatrix *m = gsl_spmatrix_alloc(M, N);
 
-  status = 0;
-  for (i = 0; i < M; ++i)
-    {
-      for (j = 0; j < N; ++j)
-        {
-          double x = (double) ++k;
-          double y;
+  /* test triplet versions of _get and _set */
+  {
+    size_t k = 0;
+    gsl_spmatrix *m = gsl_spmatrix_alloc(M, N);
 
-          gsl_spmatrix_set(m, i, j, x);
-          y = gsl_spmatrix_get(m, i, j);
+    status = 0;
+    for (i = 0; i < M; ++i)
+      {
+        for (j = 0; j < N; ++j)
+          {
+            double x = (double) ++k;
+            double y;
 
-          if (x != y)
-            status = 1;
-        }
-    }
+            gsl_spmatrix_set(m, i, j, x);
+            y = gsl_spmatrix_get(m, i, j);
 
-  gsl_test(status, "test_getset: M=%zu N=%zu _get != _set", M, N);
+            if (x != y)
+              status = 1;
+          }
+      }
 
-  gsl_spmatrix_free(m);
+    gsl_test(status, "test_getset: M=%zu N=%zu _get != _set", M, N);
+
+    gsl_spmatrix_free(m);
+  }
+
+  /* test compressed version of gsl_spmatrix_get() */
+  {
+    gsl_spmatrix *T = create_random_sparse(M, N, 0.3, r);
+    gsl_spmatrix *C = gsl_spmatrix_compress(T);
+
+    status = 0;
+    for (i = 0; i < M; ++i)
+      {
+        for (j = 0; j < N; ++j)
+          {
+            double Tij = gsl_spmatrix_get(T, i, j);
+            double Cij = gsl_spmatrix_get(C, i, j);
+
+            if (Tij != Cij)
+              status = 1;
+          }
+      }
+
+    gsl_test(status, "test_getset: M=%zu N=%zu compressed _get", M, N);
+
+    gsl_spmatrix_free(T);
+    gsl_spmatrix_free(C);
+  }
 } /* test_getset() */
 
 static void
 test_memcpy(const size_t M, const size_t N, const gsl_rng *r)
 {
   int status;
-  gsl_spmatrix *a = create_random_sparse(M, N, 0.2, r);
-  gsl_spmatrix *b, *c, *d;
+
+  {
+    gsl_spmatrix *at = create_random_sparse(M, N, 0.2, r);
+    gsl_spmatrix *ac = gsl_spmatrix_compress(at);
+    gsl_spmatrix *bt, *bc;
   
-  b = gsl_spmatrix_memcpy(a);
+    bt = gsl_spmatrix_memcpy(at);
 
-  status = gsl_spmatrix_equal(a, b) != 1;
-  gsl_test(status, "test_memcpy: M=%zu N=%zu triplet format", M, N);
+    status = gsl_spmatrix_equal(at, bt) != 1;
+    gsl_test(status, "test_memcpy: _memcpy M=%zu N=%zu triplet format", M, N);
 
-  c = gsl_spmatrix_compress(a);
-  d = gsl_spmatrix_memcpy(c);
+    bc = gsl_spmatrix_memcpy(ac);
 
-  status = gsl_spmatrix_equal(c, d) != 1;
-  gsl_test(status, "test_memcpy: M=%zu N=%zu compressed column format", M, N);
+    status = gsl_spmatrix_equal(ac, bc) != 1;
+    gsl_test(status, "test_memcpy: _memcpy M=%zu N=%zu compressed column format", M, N);
 
-  gsl_spmatrix_free(a);
-  gsl_spmatrix_free(b);
-  gsl_spmatrix_free(c);
-  gsl_spmatrix_free(d);
+    gsl_spmatrix_free(at);
+    gsl_spmatrix_free(ac);
+    gsl_spmatrix_free(bt);
+    gsl_spmatrix_free(bc);
+  }
+
+  {
+    gsl_spmatrix *A = create_random_sparse(M, N, 0.3, r);
+    gsl_spmatrix *AT = gsl_spmatrix_transpose_memcpy(A);
+    gsl_spmatrix *B = gsl_spmatrix_compress(A);
+    gsl_spmatrix *BT = gsl_spmatrix_transpose_memcpy(B);
+    size_t i, j;
+
+    status = 0;
+    for (i = 0; i < M; ++i)
+      {
+        for (j = 0; j < N; ++j)
+          {
+            double Aij = gsl_spmatrix_get(A, i, j);
+            double ATji = gsl_spmatrix_get(AT, j, i);
+            double Bij = gsl_spmatrix_get(B, i, j);
+            double BTji = gsl_spmatrix_get(BT, j, i);
+
+            if ((Aij != ATji) || (Bij != BTji) || (Aij != Bij))
+              status = 1;
+          }
+      }
+
+    gsl_test(status, "test_memcpy: _transpose_memcpy M=%zu N=%zu triplet format", M, N);
+
+    gsl_spmatrix_free(A);
+    gsl_spmatrix_free(AT);
+    gsl_spmatrix_free(B);
+    gsl_spmatrix_free(BT);
+  }
 } /* test_memcpy() */
 
 void
 test_dgemv(const double alpha, const double beta, const gsl_rng *r)
 {
-  size_t N_max = 50;
+  size_t N_max = 30;
   gsl_matrix *A = gsl_matrix_alloc(N_max, N_max);
   gsl_vector *x = gsl_vector_alloc(N_max);
   gsl_vector *y0 = gsl_vector_alloc(N_max);
@@ -236,9 +297,9 @@ main()
   test_memcpy(10, 15, r);
   test_memcpy(53, 213, r);
 
-  test_getset(20, 20);
-  test_getset(30, 20);
-  test_getset(15, 210);
+  test_getset(20, 20, r);
+  test_getset(30, 20, r);
+  test_getset(15, 210, r);
 
   test_dgemv(1.0, 0.0, r);
   test_dgemv(2.4, -0.5, r);

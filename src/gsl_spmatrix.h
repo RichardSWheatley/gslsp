@@ -112,6 +112,7 @@ int gsl_spmatrix_set(gsl_spmatrix *m, const size_t i, const size_t j,
 
 /* spcompress.c */
 gsl_spmatrix *gsl_spmatrix_compress(const gsl_spmatrix *T);
+void gsl_spmatrix_cumsum(const size_t n, size_t *c);
 
 /* spoper.c */
 int gsl_spmatrix_scale(gsl_spmatrix *m, const double x);
@@ -124,7 +125,7 @@ int gsl_spmatrix_sp2d(gsl_matrix *A, const gsl_spmatrix *S);
 int gsl_spmatrix_equal(const gsl_spmatrix *a, const gsl_spmatrix *b);
 
 /* spswap.c */
-int gsl_spmatrix_transpose_memcpy(gsl_spmatrix *dest, const gsl_spmatrix *src);
+gsl_spmatrix *gsl_spmatrix_transpose_memcpy(const gsl_spmatrix *src);
 
 /* spblas */
 int gsl_spblas_dgemv(const double alpha, const gsl_spmatrix *A,

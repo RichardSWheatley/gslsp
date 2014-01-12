@@ -29,20 +29,38 @@
 double
 gsl_spmatrix_get(const gsl_spmatrix *m, const size_t i, const size_t j)
 {
-  if (!(m->flags & GSL_SPMATRIX_TRIPLET))
+  if (i >= m->size1)
     {
-      GSL_ERROR("matrix not in triplet representation", GSL_EINVAL);
+      GSL_ERROR_VAL("first index out of range", GSL_EINVAL, 0.0);
+    }
+  else if (j >= m->size2)
+    {
+      GSL_ERROR_VAL("second index out of range", GSL_EINVAL, 0.0);
     }
   else
     {
-      size_t n;
-      const size_t *Ti = m->i;
-      const size_t *Tj = m->p;
+      const size_t *mi = m->i;
+      const size_t *mp = m->p;
 
-      for (n = 0; n < m->nz; ++n)
+      if (GSLSP_ISTRIPLET(m))
         {
-          if (Ti[n] == i && Tj[n] == j)
-            return m->data[n];
+          size_t n;
+          for (n = 0; n < m->nz; ++n)
+            {
+              if (mi[n] == i && mp[n] == j)
+                return m->data[n];
+            }
+        }
+      else if (GSLSP_ISCOMPCOL(m))
+        {
+          size_t p;
+
+          /* loop over column j and search for row index i */
+          for (p = mp[j]; p < mp[j + 1]; ++p)
+            {
+              if (mi[p] == i)
+                return m->data[p];
+            }
         }
 
       /* element not found; return 0 */

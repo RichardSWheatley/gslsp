@@ -26,8 +26,6 @@
 
 #include "gsl_spmatrix.h"
 
-static int cumulative_sum(const size_t n, size_t *c);
-
 /*
 gsl_spmatrix_compress()
   Create a sparse matrix in compressed column format
@@ -66,7 +64,7 @@ gsl_spmatrix_compress(const gsl_spmatrix *T)
     Cp[Tj[n]]++;
 
   /* compute column pointers: p[j] = p[j-1] + nnz[j-1] */
-  cumulative_sum(m->size2, Cp);
+  gsl_spmatrix_cumsum(m->size2, Cp);
 
   /* make a copy of the column pointers */
   w = m->work;
@@ -87,7 +85,7 @@ gsl_spmatrix_compress(const gsl_spmatrix *T)
 } /* gsl_spmatrix_compress() */
 
 /*
-cumulative_sum()
+gsl_spmatrix_cumsum()
 
 Compute the cumulative sum:
 
@@ -107,8 +105,8 @@ Inputs: n - length of input array
 Return: success or error
 */
 
-static int
-cumulative_sum(const size_t n, size_t *c)
+void
+gsl_spmatrix_cumsum(const size_t n, size_t *c)
 {
   size_t sum = 0;
   size_t k;
@@ -121,6 +119,4 @@ cumulative_sum(const size_t n, size_t *c)
     }
 
   c[n] = sum;
-
-  return GSL_SUCCESS;
-} /* cumulative_sum() */
+} /* gsl_spmatrix_cumsum() */

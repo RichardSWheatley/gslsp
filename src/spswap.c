@@ -27,37 +27,71 @@
 
 #include "gsl_spmatrix.h"
 
-int
-gsl_spmatrix_transpose_memcpy(gsl_spmatrix *dest, const gsl_spmatrix *src)
+gsl_spmatrix *
+gsl_spmatrix_transpose_memcpy(const gsl_spmatrix *src)
 {
-  dest->size1 = src->size2;
-  dest->size2 = src->size1;
-  dest->nz = src->nz;
-  dest->flags = src->flags;
+  const size_t M = src->size1;
+  const size_t N = src->size2;
+  const size_t nz = src->nz;
+  gsl_spmatrix *dest;
 
-  /* enlarge dest if needed */
-  if (dest->nzmax < src->nzmax)
-    {
-      int s = gsl_spmatrix_realloc(src->nzmax, dest);
-      if (s)
-        return s;
-    }
+  /* allocate space for transposed matrix */
+  dest = gsl_spmatrix_alloc_nzmax(N, M, nz, src->flags);
 
   if (GSLSP_ISTRIPLET(src))
     {
       size_t n;
 
-      for (n = 0; n < src->nz; ++n)
+      for (n = 0; n < nz; ++n)
         {
           dest->i[n] = src->p[n];
           dest->p[n] = src->i[n];
           dest->data[n] = src->data[n];
         }
     }
+  else if (GSLSP_ISCOMPCOL(src))
+    {
+      size_t *Ai = src->i;
+      size_t *Ap = src->p;
+      double *Ad = src->data;
+      size_t *ATi = dest->i;
+      size_t *ATp = dest->p;
+      double *ATd = dest->data;
+      size_t *w = dest->work;
+      size_t p, j;
+
+      /* initialize to 0 */
+      for (p = 0; p < M + 1; ++p)
+        ATp[p] = 0;
+
+      /* compute row counts of A (= column counts for A^T) */
+      for (p = 0; p < nz; ++p)
+        ATp[Ai[p]]++;
+
+      /* compute row pointers for A (= column pointers for A^T) */
+      gsl_spmatrix_cumsum(M, ATp);
+
+      /* make copy of row pointers */
+      for (j = 0; j < M; ++j)
+        w[j] = ATp[j];
+
+      for (j = 0; j < N; ++j)
+        {
+          for (p = Ap[j]; p < Ap[j + 1]; ++p)
+            {
+              size_t k = w[Ai[p]]++;
+              ATi[k] = j;
+              ATd[k] = Ad[p];
+            }
+        }
+    }
   else
     {
-      GSL_ERROR("non-triplet formats not yet supported", GSL_EINVAL);
+      gsl_spmatrix_free(dest);
+      GSL_ERROR_NULL("unknown sparse matrix type", GSL_EINVAL);
     }
 
-  return GSL_SUCCESS;
+  dest->nz = nz;
+
+  return dest;
 } /* gsl_spmatrix_transpose_memcpy() */
