@@ -27,6 +27,9 @@
 
 #include "gsl_spmatrix.h"
 
+static size_t scatter(const gsl_spmatrix *A, const size_t j, size_t *w, double *x,
+                      const size_t mark, gsl_spmatrix *C, size_t nz);
+
 int
 gsl_spmatrix_scale(gsl_spmatrix *m, const double x)
 {
@@ -68,6 +71,79 @@ gsl_spmatrix_minmax(const gsl_spmatrix *m, double *min_out, double *max_out)
 
   return GSL_SUCCESS;
 } /* gsl_spmatrix_minmax() */
+
+/*
+gsl_spmatrix_add()
+  Add two sparse matrices
+
+Inputs: a - (input) sparse matrix
+        b - (input) sparse matrix
+        c - (output) a + b
+
+Return: success or error
+*/
+
+gsl_spmatrix *
+gsl_spmatrix_add(const gsl_spmatrix *a, const gsl_spmatrix *b)
+{
+  const size_t M = a->size1;
+  const size_t N = a->size2;
+
+  if (b->size1 != M || b->size2 != N)
+    {
+      GSL_ERROR_NULL("matrices must have same dimensions", GSL_EBADLEN);
+    }
+  else if (a->flags != b->flags)
+    {
+      GSL_ERROR_NULL("matrices must have same sparse storage format", GSL_EINVAL);
+    }
+  else
+    {
+      gsl_spmatrix *c;
+      size_t *w = a->work;
+      double *x = malloc(M * sizeof(double));
+      size_t *Cp, *Ci;
+      double *Cd;
+      size_t j, p;
+      size_t nz = 0; /* number of non-zeros in c */
+
+      c = gsl_spmatrix_alloc_nzmax(M, N, a->nz + b->nz, a->flags);
+      if (!c)
+        {
+          GSL_ERROR_NULL("failed to allocate space for c matrix", GSL_ENOMEM);
+        }
+
+      /* initialize w = 0 */
+      for (j = 0; j < M; ++j)
+        w[j] = 0;
+
+      Ci = c->i;
+      Cp = c->p;
+      Cd = c->data;
+
+      for (j = 0; j < N; ++j)
+        {
+          Cp[j] = nz;
+
+          /* x += A(:,j) */
+          nz = scatter(a, j, w, x, j + 1, c, nz);
+
+          /* x += B(:,j) */
+          nz = scatter(b, j, w, x, j + 1, c, nz);
+
+          for (p = Cp[j]; p < nz; ++p)
+            Cd[p] = x[Ci[p]];
+        }
+
+      /* finalize last column of c */
+      Cp[N] = nz;
+      c->nz = nz;
+
+      free(x);
+
+      return c;
+    }
+} /* gsl_spmatrix_add() */
 
 /*
 gsl_spmatrix_d2sp()
@@ -138,3 +214,57 @@ gsl_spmatrix_sp2d(gsl_matrix *A, const gsl_spmatrix *S)
       return GSL_SUCCESS;
     }
 } /* gsl_spmatrix_sp2d() */
+
+/*
+scatter()
+
+  Keep a running total x -> x + A(:,j) for adding matrices together in CCS,
+which will eventually be stored in C(:,j)
+
+  When a new non-zero element with row index i is found, update C->i with
+the row index. C->data is updated only by the calling function after all
+matrices have been added via this function.
+
+Inputs: A    - sparse matrix m-by-n
+        j    - column index
+        w    - keeps track which rows of column j have been added to C;
+               initialize to 0 prior to first call
+        x    - column vector of length m
+        mark -
+        C    - output matrix whose jth column will be added to A(:,j)
+        nz   - (input/output) number of non-zeros in matrix C
+
+Notes:
+1) This function is designed to be called successively when adding multiple
+matrices together. Column j of C is stored contiguously as per CCS but not
+necessarily in order - ie: the row indices C->i may not be in ascending order.
+*/
+
+static size_t
+scatter(const gsl_spmatrix *A, const size_t j, size_t *w, double *x,
+        const size_t mark, gsl_spmatrix *C, size_t nz)
+{
+  size_t p;
+  size_t *Ai = A->i;
+  size_t *Ap = A->p;
+  double *Ad = A->data;
+  size_t *Ci = C->i;
+
+  for (p = Ap[j]; p < Ap[j + 1]; ++p)
+    {
+      size_t i = Ai[p];  /* A(i,j) is nonzero */
+
+      if (w[i] < mark)   /* check if this row has been stored in column j yet */
+        {
+          w[i] = mark;   /* i is new entry in column j */
+          Ci[nz++] = i;  /* add i to pattern of C(:,j) */
+          x[i] = Ad[p];  /* x(i) = A(i,j) */
+        }
+      else               /* this (i,j) already exists in C from a previous call */
+        {
+          x[i] += Ad[p]; /* add A(i,j) to C(i,j) */
+        }
+    }
+
+  return (nz) ;
+} /* scatter() */

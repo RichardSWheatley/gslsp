@@ -74,7 +74,7 @@ typedef struct
   size_t nzmax; /* maximum number of matrix elements */
   size_t nz;    /* number of non-zero values in matrix */
 
-  size_t *work; /* workspace of size size2 used in gsl_spmatrix_compress() */
+  size_t *work; /* workspace of size MAX(size1,size2) used in various routines */
 
   size_t flags;
 } gsl_spmatrix;
@@ -114,6 +114,7 @@ void gsl_spmatrix_cumsum(const size_t n, size_t *c);
 int gsl_spmatrix_scale(gsl_spmatrix *m, const double x);
 int gsl_spmatrix_minmax(const gsl_spmatrix *m, double *min_out,
                         double *max_out);
+gsl_spmatrix *gsl_spmatrix_add(const gsl_spmatrix *a, const gsl_spmatrix *b);
 int gsl_spmatrix_d2sp(gsl_spmatrix *S, const gsl_matrix *A);
 int gsl_spmatrix_sp2d(gsl_matrix *A, const gsl_spmatrix *S);
 

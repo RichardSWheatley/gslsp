@@ -229,6 +229,43 @@ test_memcpy(const size_t M, const size_t N, const gsl_rng *r)
 } /* test_memcpy() */
 
 void
+test_ops(const size_t M, const size_t N, const gsl_rng *r)
+{
+  size_t i, j;
+  int status;
+
+  {
+    gsl_spmatrix *Ta = create_random_sparse(M, N, 0.2, r);
+    gsl_spmatrix *Tb = create_random_sparse(M, N, 0.2, r);
+    gsl_spmatrix *a = gsl_spmatrix_compress(Ta);
+    gsl_spmatrix *b = gsl_spmatrix_compress(Tb);
+    gsl_spmatrix *c = gsl_spmatrix_add(a, b);
+
+    status = 0;
+    for (i = 0; i < M; ++i)
+      {
+        for (j = 0; j < N; ++j)
+          {
+            double aij = gsl_spmatrix_get(a, i, j);
+            double bij = gsl_spmatrix_get(b, i, j);
+            double cij = gsl_spmatrix_get(c, i, j);
+
+            if (aij + bij != cij)
+              status = 1;
+          }
+      }
+
+    gsl_test(status, "test_ops: _add M=%zu N=%zu compressed format", M, N);
+
+    gsl_spmatrix_free(Ta);
+    gsl_spmatrix_free(Tb);
+    gsl_spmatrix_free(a);
+    gsl_spmatrix_free(b);
+    gsl_spmatrix_free(c);
+  }
+} /* test_ops() */
+
+void
 test_dgemv(const double alpha, const double beta, const gsl_rng *r)
 {
   size_t N_max = 45;
@@ -303,6 +340,11 @@ main()
   test_getset(20, 20, r);
   test_getset(30, 20, r);
   test_getset(15, 210, r);
+
+  test_ops(20, 20, r);
+  test_ops(50, 20, r);
+  test_ops(20, 50, r);
+  test_ops(76, 43, r);
 
   test_dgemv(1.0, 0.0, r);
   test_dgemv(2.4, -0.5, r);
