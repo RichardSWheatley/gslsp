@@ -213,7 +213,7 @@ This function frees the memory associated with the sparse matrix @var{m}.
 
 @deftypefun double gsl_spmatrix_get (const gsl_spmatrix * @var{m}, const size_t @var{i}, const size_t @var{j})
 This function returns element (@var{i},@var{j}) of the matrix @var{m}.
-The matrix must be in triplet representation.
+The matrix may be in triplet or compressed format.
 @end deftypefun
 
 @deftypefun int gsl_spmatrix_set (gsl_spmatrix * @var{m}, const size_t @var{i}, const size_t @var{j}, const double @var{x})

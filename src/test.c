@@ -230,7 +230,7 @@ test_memcpy(const size_t M, const size_t N, const gsl_rng *r)
 void
 test_dgemv(const double alpha, const double beta, const gsl_rng *r)
 {
-  size_t N_max = 30;
+  size_t N_max = 45;
   gsl_matrix *A = gsl_matrix_alloc(N_max, N_max);
   gsl_vector *x = gsl_vector_alloc(N_max);
   gsl_vector *y0 = gsl_vector_alloc(N_max);
