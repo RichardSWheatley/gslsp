@@ -97,6 +97,10 @@ gsl_spmatrix_add(const gsl_spmatrix *a, const gsl_spmatrix *b)
     {
       GSL_ERROR_NULL("matrices must have same sparse storage format", GSL_EINVAL);
     }
+  else if (GSLSP_ISTRIPLET(a))
+    {
+      GSL_ERROR_NULL("triplet format not yet supported", GSL_EINVAL);
+    }
   else
     {
       gsl_spmatrix *c;
