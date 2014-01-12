@@ -201,7 +201,39 @@ initializes it to all zeros. If the size of the matrix is not known at allocatio
 time, both @var{n1} and @var{n2} may be set to 1, and they will automatically
 grow as elements are added to the matrix. This function sets the
 matrix to the triplet representation, which is the easiest for adding
-and accessing matrix elements.
+and accessing matrix elements. This function tries to make a reasonable guess
+for the number of non-zero elements (@var{nzmax}) which will be added to the matrix by
+assuming a sparse density of @math{10\%}. The function
+@code{gsl_spmatrix_alloc_nzmax} can be used if this number is known more
+accurately. The workspace is of size @math{O(nzmax)}.
+@end deftypefun
+
+@deftypefun {gsl_spmatrix *} gsl_spmatrix_alloc_nzmax (const size_t @var{n1}, const size_t @var{n2}, const size_t @var{nzmax}, const size_t @var{flags})
+This function allocates a sparse matrix of size @var{n1}-by-@var{n2} and
+initializes it to all zeros. If the size of the matrix is not known at allocation
+time, both @var{n1} and @var{n2} may be set to 1, and they will automatically
+grow as elements are added to the matrix. The parameter @var{nzmax} specifies
+the maximum number of non-zero elements which will be added to the matrix.
+It does not need to be precisely known in advance, since storage space will 
+automatically grow using @code{gsl_spmatrix_realloc} if @var{nzmax} is not
+large enough. Accurate knowledge of this parameter reduces the number of
+reallocation calls required. The parameter @var{flags} specifies the storage
+format of the sparse matrix. Possible values are
+@table @code
+@item GSL_SPMATRIX_TRIPLET
+This flag specifies triplet storage.
+
+@item GSL_SPMATRIX_COMPCOL
+This flag specifies compressed column storage.
+@end table
+The allocated @code{gsl_spmatrix} structure is of size @math{O(nzmax)}.
+@end deftypefun
+
+@deftypefun int gsl_spmatrix_realloc (const size_t @var{nzmax}, gsl_spmatrix * @var{m})
+This function reallocates the storage space for @var{m} to accomodate
+@var{nzmax} non-zero elements. It is typically called internally by
+@code{gsl_spmatrix_set} if the user wants to add more elements to the
+sparse matrix than the previously specified @var{nzmax}.
 @end deftypefun
 
 @deftypefun void gsl_spmatrix_free (gsl_spmatrix * @var{m})

@@ -196,6 +196,7 @@ test_memcpy(const size_t M, const size_t N, const gsl_rng *r)
     gsl_spmatrix_free(bc);
   }
 
+  /* test transpose_memcpy */
   {
     gsl_spmatrix *A = create_random_sparse(M, N, 0.3, r);
     gsl_spmatrix *AT = gsl_spmatrix_transpose_memcpy(A);
@@ -266,14 +267,14 @@ test_dgemv(const double alpha, const double beta, const gsl_rng *r)
 
           /* compute y = alpha*A*x + beta*y0 with spblas/triplet */
           gsl_spblas_dgemv(alpha, mt, &xv.vector, beta, &y_sp.vector);
-          test_vectors(&y_sp.vector, &y_gsl.vector, 1.0e-12,
+          test_vectors(&y_sp.vector, &y_gsl.vector, 1.0e-10,
                        "test_dgemv: triplet format");
 
           /* compute y = alpha*A*x + beta*y0 with spblas/compcol */
           mc = gsl_spmatrix_compress(mt);
           gsl_vector_memcpy(&y_sp.vector, &y.vector);
           gsl_spblas_dgemv(alpha, mc, &xv.vector, beta, &y_sp.vector);
-          test_vectors(&y_sp.vector, &y_gsl.vector, 1.0e-12,
+          test_vectors(&y_sp.vector, &y_gsl.vector, 1.0e-10,
                        "test_dgemv: compressed column format");
 
           gsl_spmatrix_free(mc);
@@ -296,6 +297,8 @@ main()
   test_memcpy(10, 10, r);
   test_memcpy(10, 15, r);
   test_memcpy(53, 213, r);
+  test_memcpy(920, 2, r);
+  test_memcpy(2, 920, r);
 
   test_getset(20, 20, r);
   test_getset(30, 20, r);

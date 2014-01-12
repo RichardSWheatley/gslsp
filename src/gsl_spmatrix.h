@@ -81,10 +81,6 @@ typedef struct
 
 #define GSL_SPMATRIX_TRIPLET      (1 << 0)
 #define GSL_SPMATRIX_COMPCOL      (1 << 1)
-#define GSL_SPMATRIX_COMPROW      (1 << 2)
-
-/* default value of nzmax */
-#define GSL_SPMATRIX_NZMAX        10000
 
 #define GSLSP_ISTRIPLET(m)        ((m)->flags & GSL_SPMATRIX_TRIPLET)
 #define GSLSP_ISCOMPCOL(m)        ((m)->flags & GSL_SPMATRIX_COMPCOL)

@@ -40,7 +40,13 @@ set to 1, and they will be expanded as elements are added to the matrix
 gsl_spmatrix *
 gsl_spmatrix_alloc(const size_t n1, const size_t n2)
 {
-  return gsl_spmatrix_alloc_nzmax(n1, n2, GSL_SPMATRIX_NZMAX, GSL_SPMATRIX_TRIPLET);
+  const double sparsity = 0.1; /* estimate */
+  size_t nzmax = (size_t) round(n1 * n2 * sparsity);
+
+  if (nzmax == 0)
+    nzmax = 10;
+
+  return gsl_spmatrix_alloc_nzmax(n1, n2, nzmax, GSL_SPMATRIX_TRIPLET);
 } /* gsl_spmatrix_alloc() */
 
 /*
