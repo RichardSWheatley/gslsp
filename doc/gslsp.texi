@@ -238,7 +238,14 @@ This function sets (or resets) all the elements of the matrix @var{m} to zero.
 @deftypefun {gsl_spmatrix *} gsl_spmatrix_memcpy (const gsl_spmatrix * @var{src})
 This function makes a copy of the sparse matrix @var{src} and returns a pointer
 to a newly allocated copy, which must be freed by the caller when no longer
-needed. The matrix @var{src} may be in either triplet or compressed column format.
+needed. The matrix @var{src} may be in either triplet or compressed format.
+@end deftypefun
+
+@deftypefun {gsl_spmatrix *} gsl_spmatrix_transpose_memcpy (const gsl_spmatrix * @var{src})
+This function computes the transpose of @var{src} and stores it in a newly
+allocated matrix which is returned by the function. This matrix should be
+freed by the caller using @code{gsl_spmatrix_free} when no longer needed.
+The matrix @var{src} may be in either triplet or compressed format.
 @end deftypefun
 
 @node Sparse matrix operations
