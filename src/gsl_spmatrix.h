@@ -74,7 +74,7 @@ typedef struct
   size_t nzmax; /* maximum number of matrix elements */
   size_t nz;    /* number of non-zero values in matrix */
 
-  size_t *work; /* workspace of size size2 used in gsl_spmatrix_compcol() */
+  size_t *work; /* workspace of size size2 used in gsl_spmatrix_compress() */
 
   size_t flags;
 } gsl_spmatrix;
@@ -98,7 +98,7 @@ gsl_spmatrix *gsl_spmatrix_alloc_nzmax(const size_t n1, const size_t n2,
                                        const size_t nzmax, const size_t flags);
 void gsl_spmatrix_free(gsl_spmatrix *m);
 int gsl_spmatrix_realloc(const size_t nzmax, gsl_spmatrix *m);
-int gsl_spmatrix_reset(gsl_spmatrix *m);
+int gsl_spmatrix_set_zero(gsl_spmatrix *m);
 size_t gsl_spmatrix_nnz(const gsl_spmatrix *m);
 
 /* spcopy.c */
@@ -111,7 +111,7 @@ int gsl_spmatrix_set(gsl_spmatrix *m, const size_t i, const size_t j,
                      const double x);
 
 /* spcompress.c */
-gsl_spmatrix *gsl_spmatrix_compcol(const gsl_spmatrix *T);
+gsl_spmatrix *gsl_spmatrix_compress(const gsl_spmatrix *T);
 
 /* spoper.c */
 int gsl_spmatrix_scale(gsl_spmatrix *m, const double x);

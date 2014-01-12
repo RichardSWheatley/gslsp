@@ -154,7 +154,7 @@ test_memcpy(const size_t M, const size_t N, const gsl_rng *r)
   status = gsl_spmatrix_equal(a, b) != 1;
   gsl_test(status, "test_memcpy: M=%zu N=%zu triplet format", M, N);
 
-  c = gsl_spmatrix_compcol(a);
+  c = gsl_spmatrix_compress(a);
   d = gsl_spmatrix_memcpy(c);
 
   status = gsl_spmatrix_equal(c, d) != 1;
@@ -209,7 +209,7 @@ test_dgemv(const double alpha, const double beta, const gsl_rng *r)
                        "test_dgemv: triplet format");
 
           /* compute y = alpha*A*x + beta*y0 with spblas/compcol */
-          mc = gsl_spmatrix_compcol(mt);
+          mc = gsl_spmatrix_compress(mt);
           gsl_vector_memcpy(&y_sp.vector, &y.vector);
           gsl_spblas_dgemv(alpha, mc, &xv.vector, beta, &y_sp.vector);
           test_vectors(&y_sp.vector, &y_gsl.vector, 1.0e-12,

@@ -198,7 +198,7 @@ gsl_spmatrix_realloc(const size_t nzmax, gsl_spmatrix *m)
 } /* gsl_spmatrix_realloc() */
 
 int
-gsl_spmatrix_reset(gsl_spmatrix *m)
+gsl_spmatrix_set_zero(gsl_spmatrix *m)
 {
   int s = GSL_SUCCESS;
 
@@ -207,7 +207,7 @@ gsl_spmatrix_reset(gsl_spmatrix *m)
   m->size2 = 1;
 
   return s;
-} /* gsl_spmatrix_reset() */
+} /* gsl_spmatrix_set_zero() */
 
 size_t
 gsl_spmatrix_nnz(const gsl_spmatrix *m)
