@@ -494,6 +494,12 @@ $$
 @end tex
 An example program which constructs this system using the @code{gsl_spmatrix}
 framework is given below. The system is solved using the dense GSL LU solver.
+The program output is shown in the following plot.
+
+@page
+@iftex
+@center @image{sparse_laplace,6in}
+@end iftex
 
 @example
 @verbatiminclude examples/laplace.c
@@ -504,6 +510,10 @@ framework is given below. The system is solved using the dense GSL LU solver.
 
 The algorithms used by these functions are described in the
 following sources:
+
+T. A. Davis, Direct Methods for Sparse Linear Systems, SIAM, 2006.
+
+CSparse software library, https://www.cise.ufl.edu/research/sparse/CSparse/
 
 @node GNU Free Documentation License
 @unnumbered GNU Free Documentation License

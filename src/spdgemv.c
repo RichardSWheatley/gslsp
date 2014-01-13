@@ -27,7 +27,19 @@
 
 #include "gsl_spmatrix.h"
 
-/* y = alpha*A*x + beta*y */
+/*
+gsl_spblas_dgemv()
+  Multiply a sparse matrix and a vector
+
+Inputs: alpha - scalar factor
+        A     - sparse matrix
+        x     - dense vector
+        beta  - scalar factor
+        y     - (input/output) dense vector
+
+Return: y = alpha*A*x + beta*y
+*/
+
 int
 gsl_spblas_dgemv(const double alpha, const gsl_spmatrix *A,
                  const gsl_vector *x, const double beta, gsl_vector *y)

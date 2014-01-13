@@ -23,7 +23,20 @@
 
 #include "gsl_spmatrix.h"
 
-/* C = alpha*A*B */
+/*
+gsl_spblas_dgemm()
+  Multiply two sparse matrices
+
+Inputs: alpha - scalar factor
+        A     - sparse matrix
+        B     - sparse matrix
+
+Return: sparse matrix C = alpha*A*B
+
+Notes:
+1) based on CSparse routine cs_multiply
+*/
+
 gsl_spmatrix *
 gsl_spblas_dgemm(const double alpha, const gsl_spmatrix *A, const gsl_spmatrix *B)
 {
@@ -124,6 +137,8 @@ Notes:
 1) This function is designed to be called successively when adding multiple
 matrices together. Column j of C is stored contiguously as per CCS but not
 necessarily in order - ie: the row indices C->i may not be in ascending order.
+
+2) based on CSparse routine cs_scatter
 */
 
 size_t
