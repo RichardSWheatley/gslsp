@@ -43,7 +43,7 @@ gsl_spmatrix_memcpy(const gsl_spmatrix *src)
           dest->data[n] = src->data[n];
         }
     }
-  else if (GSLSP_ISCOMPCOL(src))
+  else if (GSLSP_ISCCS(src))
     {
       for (n = 0; n < src->nz; ++n)
         {

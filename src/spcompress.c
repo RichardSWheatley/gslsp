@@ -45,7 +45,7 @@ gsl_spmatrix_compress(const gsl_spmatrix *T)
   size_t n;
 
   m = gsl_spmatrix_alloc_nzmax(T->size1, T->size2, T->nz,
-                               GSL_SPMATRIX_COMPCOL);
+                               GSL_SPMATRIX_CCS);
   if (!m)
     return NULL;
 

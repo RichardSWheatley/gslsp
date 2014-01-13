@@ -51,7 +51,7 @@ gsl_spmatrix_get(const gsl_spmatrix *m, const size_t i, const size_t j)
                 return m->data[n];
             }
         }
-      else if (GSLSP_ISCOMPCOL(m))
+      else if (GSLSP_ISCCS(m))
         {
           size_t p;
 

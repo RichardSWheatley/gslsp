@@ -110,7 +110,7 @@ gsl_spmatrix_alloc_nzmax(const size_t n1, const size_t n2,
                         GSL_ENOMEM, 0);
         }
     }
-  else if (flags == GSL_SPMATRIX_COMPCOL)
+  else if (flags == GSL_SPMATRIX_CCS)
     {
       m->p = malloc((n2 + 1) * sizeof(size_t));
       m->work = malloc(GSL_MAX(n1, n2) * sizeof(size_t));

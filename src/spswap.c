@@ -49,7 +49,7 @@ gsl_spmatrix_transpose_memcpy(const gsl_spmatrix *src)
           dest->data[n] = src->data[n];
         }
     }
-  else if (GSLSP_ISCOMPCOL(src))
+  else if (GSLSP_ISCCS(src))
     {
       size_t *Ai = src->i;
       size_t *Ap = src->p;

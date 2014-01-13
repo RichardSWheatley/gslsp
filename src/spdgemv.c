@@ -84,7 +84,7 @@ gsl_spblas_dgemv(const double alpha, const gsl_spmatrix *A,
       X = x->data;
       incX = x->stride;
 
-      if (A->flags & GSL_SPMATRIX_COMPCOL)
+      if (GSLSP_ISCCS(A))
         {
           Ai = A->i;
           for (j = 0; j < N; ++j)

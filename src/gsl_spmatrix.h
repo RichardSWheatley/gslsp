@@ -80,10 +80,10 @@ typedef struct
 } gsl_spmatrix;
 
 #define GSL_SPMATRIX_TRIPLET      (1 << 0)
-#define GSL_SPMATRIX_COMPCOL      (1 << 1)
+#define GSL_SPMATRIX_CCS          (1 << 1)
 
 #define GSLSP_ISTRIPLET(m)        ((m)->flags & GSL_SPMATRIX_TRIPLET)
-#define GSLSP_ISCOMPCOL(m)        ((m)->flags & GSL_SPMATRIX_COMPCOL)
+#define GSLSP_ISCCS(m)            ((m)->flags & GSL_SPMATRIX_CCS)
 
 /*
  * Prototypes

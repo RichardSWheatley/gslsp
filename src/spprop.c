@@ -63,7 +63,7 @@ gsl_spmatrix_equal(const gsl_spmatrix *a, const gsl_spmatrix *b)
                 return 0;
             }
         }
-      else if (GSLSP_ISCOMPCOL(a))
+      else if (GSLSP_ISCCS(a))
         {
           /*
            * for compressed column, both matrices should have everything
