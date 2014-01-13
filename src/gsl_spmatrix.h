@@ -127,6 +127,11 @@ gsl_spmatrix *gsl_spmatrix_transpose_memcpy(const gsl_spmatrix *src);
 /* spblas */
 int gsl_spblas_dgemv(const double alpha, const gsl_spmatrix *A,
                      const gsl_vector *x, const double beta, gsl_vector *y);
+gsl_spmatrix *gsl_spblas_dgemm(const double alpha, const gsl_spmatrix *A,
+                               const gsl_spmatrix *B);
+size_t gsl_spblas_scatter(const gsl_spmatrix *A, const size_t j, const double alpha,
+                          size_t *w, double *x, const size_t mark, gsl_spmatrix *C,
+                          size_t nz);
 
 __END_DECLS
 

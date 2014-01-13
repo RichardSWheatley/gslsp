@@ -326,6 +326,55 @@ test_dgemv(const double alpha, const double beta, const gsl_rng *r)
   gsl_vector_free(y2);
 } /* test_dgemv() */
 
+void
+test_dgemm(const double alpha, const size_t M, const size_t N, const gsl_rng *r)
+{
+  const size_t max = GSL_MAX(M, N);
+  size_t i, j, k;
+  gsl_matrix *A_gsl = gsl_matrix_alloc(M, max);
+  gsl_matrix *B_gsl = gsl_matrix_alloc(max, N);
+  gsl_matrix *C_gsl = gsl_matrix_alloc(M, N);
+
+  for (k = 1; k <= max; ++k)
+    {
+      gsl_matrix_view Ag = gsl_matrix_submatrix(A_gsl, 0, 0, M, k);
+      gsl_matrix_view Bg = gsl_matrix_submatrix(B_gsl, 0, 0, k, N);
+      gsl_spmatrix *TA = create_random_sparse(M, k, 0.2, r);
+      gsl_spmatrix *TB = create_random_sparse(k, N, 0.2, r);
+      gsl_spmatrix *A = gsl_spmatrix_compress(TA);
+      gsl_spmatrix *B = gsl_spmatrix_compress(TB);
+      gsl_spmatrix *C = gsl_spblas_dgemm(alpha, A, B);
+
+      /* make dense matrices and use standard dgemm to multiply them */
+      gsl_spmatrix_sp2d(&Ag.matrix, TA);
+      gsl_spmatrix_sp2d(&Bg.matrix, TB);
+      gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, alpha, &Ag.matrix, &Bg.matrix,
+                     0.0, C_gsl);
+
+      /* compare C and C_gsl */
+      for (i = 0; i < M; ++i)\
+        {
+          for (j = 0; j < N; ++j)
+            {
+              double Cij = gsl_spmatrix_get(C, i, j);
+              double Dij = gsl_matrix_get(C_gsl, i, j);
+
+              gsl_test_rel(Cij, Dij, 1.0e-12, "test_dgemm: _dgemm");
+            }
+        }
+
+      gsl_spmatrix_free(TA);
+      gsl_spmatrix_free(TB);
+      gsl_spmatrix_free(A);
+      gsl_spmatrix_free(B);
+      gsl_spmatrix_free(C);
+    }
+
+  gsl_matrix_free(A_gsl);
+  gsl_matrix_free(B_gsl);
+  gsl_matrix_free(C_gsl);
+} /* test_dgemm() */
+
 int
 main()
 {
@@ -349,6 +398,11 @@ main()
   test_dgemv(1.0, 0.0, r);
   test_dgemv(2.4, -0.5, r);
   test_dgemv(0.1, 10.0, r);
+
+  test_dgemm(1.0, 10, 10, r);
+  test_dgemm(2.3, 20, 15, r);
+  test_dgemm(1.8, 12, 30, r);
+  test_dgemm(0.4, 45, 35, r);
 
   gsl_rng_free(r);
 

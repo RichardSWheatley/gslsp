@@ -3,6 +3,7 @@ libgslsp_la_SOURCES = \
   spcompress.c        \
 	spcopy.c            \
   spdgemv.c           \
+  spdgemm.c           \
   spgetset.c          \
   spmatrix.c          \
   spoper.c            \

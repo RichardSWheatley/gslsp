@@ -182,13 +182,16 @@ gsl_spmatrix_realloc(const size_t nzmax, gsl_spmatrix *m)
 
   m->i = (size_t *) ptr;
 
-  ptr = realloc(m->p, nzmax * sizeof(size_t));
-  if (!ptr)
+  if (GSLSP_ISTRIPLET(m))
     {
-      GSL_ERROR("failed to allocate space for column indices", GSL_ENOMEM);
-    }
+      ptr = realloc(m->p, nzmax * sizeof(size_t));
+      if (!ptr)
+        {
+          GSL_ERROR("failed to allocate space for column indices", GSL_ENOMEM);
+        }
 
-  m->p = (size_t *) ptr;
+      m->p = (size_t *) ptr;
+    }
 
   ptr = realloc(m->data, nzmax * sizeof(double));
   if (!ptr)
