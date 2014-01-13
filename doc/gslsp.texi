@@ -433,7 +433,7 @@ $$
 @end tex
 @ifinfo
 @example
-u''(x) = f(x) = -\pi^2 \sin{(\pi x)}
+u''(x) = f(x) = -\pi^2 \sin(\pi x)
 @end example
 @end ifinfo
 with boundary conditions @math{u(0) = u(1) = 0}. The analytic solution of
@@ -448,7 +448,7 @@ $$
 @end tex
 @ifinfo
 @example
-1/h^2 ( u_{i+1} - 2 u_i + u_{i-1} ) = f_i
+1/h^2 ( u_(i+1) - 2 u_i + u_(i-1) ) = f_i
 @end example
 @end ifinfo
 Defining a grid of @math{N} points, @math{h = 1/(N-1)}. In the finite
