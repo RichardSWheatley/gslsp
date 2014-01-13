@@ -178,7 +178,7 @@ under the terms of the GNU Free Documentation License.
 @end menu
 
 @node Introduction, Sparse matrix allocation, Top, Top
-@section Introduction
+@chapter Introduction
 
 These routines provide support for constructing and manipulating
 sparse matrices in GSL, using an API similar to the @code{gsl_matrix}
@@ -243,7 +243,7 @@ The routines in this extension are defined in the header file
 @file{gsl_spmatrix.h}.
 
 @node Sparse matrix allocation, Accessing sparse matrix elements, Introduction, Top
-@section Sparse matrix allocation
+@chapter Sparse matrix allocation
 
 The functions for allocating memory for a sparse matrix follow the style of
 @code{malloc} and @code{free}. They also perform their own error checking. If
@@ -297,7 +297,7 @@ This function frees the memory associated with the sparse matrix @var{m}.
 @end deftypefun
 
 @node Accessing sparse matrix elements, Initializing sparse matrix elements, Sparse matrix allocation, Top
-@section Accessing sparse matrix elements
+@chapter Accessing sparse matrix elements
 
 @deftypefun double gsl_spmatrix_get (const gsl_spmatrix * @var{m}, const size_t @var{i}, const size_t @var{j})
 This function returns element (@var{i},@var{j}) of the matrix @var{m}.
@@ -310,7 +310,7 @@ the value @var{x}. The matrix must be in triplet representation.
 @end deftypefun
 
 @node Initializing sparse matrix elements, Copying sparse matrices, Accessing sparse matrix elements, Top
-@section Initializing sparse matrix elements
+@chapter Initializing sparse matrix elements
 
 Since the sparse matrix format only stores the non-zero elements, it is automatically
 initialized to zero upon allocation. The function @code{gsl_spmatrix_set_zero} may
@@ -321,7 +321,7 @@ This function sets (or resets) all the elements of the matrix @var{m} to zero.
 @end deftypefun
 
 @node Copying sparse matrices, Sparse matrix operations, Initializing sparse matrix elements, Top
-@section Copying sparse matrices
+@chapter Copying sparse matrices
 
 @deftypefun {gsl_spmatrix *} gsl_spmatrix_memcpy (const gsl_spmatrix * @var{src})
 This function makes a copy of the sparse matrix @var{src} and returns a pointer
@@ -337,7 +337,7 @@ The matrix @var{src} may be in either triplet or compressed format.
 @end deftypefun
 
 @node Sparse matrix operations, Sparse matrix properties, Copying sparse matrices, Top
-@section Sparse matrix operations
+@chapter Sparse matrix operations
 
 @deftypefun {gsl_spmatrix *} gsl_spmatrix_add (const gsl_spmatrix * @var{a}, const gsl_spmatrix * @var{b})
 This function adds the two matrices @math{a + b} and stores the result in
@@ -352,7 +352,7 @@ factor @var{x}. The result @math{m(i,j) \leftarrow x m(i,j)} is stored in @var{m
 @end deftypefun
 
 @node Sparse matrix properties, Finding maximum and minimum elements of sparse matrices, Sparse matrix operations, Top
-@section Sparse matrix properties
+@chapter Sparse matrix properties
 
 @deftypefun size_t gsl_spmatrix_nnz (const gsl_spmatrix * @var{m})
 This function returns the number of non-zero elements in @var{m}.
@@ -365,7 +365,7 @@ both triplet format or both compressed format for comparison.
 @end deftypefun
 
 @node Finding maximum and minimum elements of sparse matrices, Sparse matrix compressed format, Sparse matrix properties, Top
-@section Finding maximum and minimum elements of sparse matrices
+@chapter Finding maximum and minimum elements of sparse matrices
 
 @deftypefun int gsl_spmatrix_minmax (const gsl_spmatrix * @var{m}, double * @var{min_out}, double * @var{max_out})
 This function returns the minimum and maximum elements of the matrix @var{m},
@@ -373,7 +373,7 @@ storing them in @var{min_out} and @var{max_out}.
 @end deftypefun
 
 @node Sparse matrix compressed format, Conversion between sparse and dense matrices, Finding maximum and minimum elements of sparse matrices, Top
-@section Sparse matrix compressed format
+@chapter Sparse matrix compressed format
 
 GSL supports the compressed column format, in which the non-zero elements in each
 column are stored contiguously in memory.
@@ -386,7 +386,7 @@ should free the newly allocated matrix when it is no longer needed.
 @end deftypefun
 
 @node Conversion between sparse and dense matrices, Sparse BLAS operations, Sparse matrix compressed format, Top
-@section Conversion between sparse and dense matrices
+@chapter Conversion between sparse and dense matrices
 
 The @code{gsl_spmatrix} structure can be converted into the dense @code{gsl_matrix}
 format and vice versa with the following routines.
@@ -402,7 +402,7 @@ stores the result in @var{A}. @var{S} must be in triplet format.
 @end deftypefun
 
 @node Sparse BLAS operations, Examples, Conversion between sparse and dense matrices, Top
-@section Sparse BLAS operations
+@chapter Sparse BLAS operations
 
 GSL supports a limited number of BLAS operations for sparse matrices.
 
